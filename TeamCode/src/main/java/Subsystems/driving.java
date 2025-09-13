@@ -24,8 +24,8 @@ public class driving extends LinearOpMode {
         // defines reference variables
         RevHubOrientationOnRobot.LogoFacingDirection logoDirection;
         RevHubOrientationOnRobot.UsbFacingDirection usbDirection;
-        logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.RIGHT;
-        usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+        logoDirection = RevHubOrientationOnRobot.LogoFacingDirection.UP;
+        usbDirection = RevHubOrientationOnRobot.UsbFacingDirection.FORWARD;
         RevHubOrientationOnRobot orientationOnRobot = new RevHubOrientationOnRobot(logoDirection, usbDirection);
 
         // instantiates and initializes IMU
