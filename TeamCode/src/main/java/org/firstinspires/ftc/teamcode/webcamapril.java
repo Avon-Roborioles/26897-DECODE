@@ -129,7 +129,7 @@ public class webcamapril extends OpMode {
                     usingBearing=true;
                     double yaw = detection.ftcPose.yaw;
                     if (yaw!=0) {
-                        yawVal = 2.5 / yaw;
+                        yawVal = 5 / yaw;
                     } else {
                         yawVal = 2;
                     }
