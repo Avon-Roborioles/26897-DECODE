@@ -5,15 +5,23 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="testLaunch and smooth", group="TeleOp")
+@TeleOp(name="Launch + Smooth Servo", group="TeleOp")
 public class testLaunch extends OpMode {
 
     private DcMotor launchMotor;
     private Servo angleServo;
 
-    double motorPower = 0;         // adjustable by right stick
-    double servoPos = 0.5;         // actual servo position
-    double targetServoPos = 0.5;   // where we *want* the servo to go
+    // --- Motor control ---
+    private int targetRPM = 1000;   // starting rpm
+    private double motorPower = 0;  // persistent power value
+    private final int RPM_STEP = 100;
+    private final int MAX_RPM = 6000; // adjust to your motor specs
+
+    // --- Servo control ---
+    private double servoPos = 0.5;        // actual servo position
+    private double targetServoPos = 0.5;  // joystick target
+    private final double SERVO_STEP = 0.01;  // joystick sensitivity
+    private final double SMOOTH_RATE = 0.02; // easing rate per loop
 
     @Override
     public void init() {
@@ -23,40 +31,44 @@ public class testLaunch extends OpMode {
         launchMotor.setPower(0);
         double startingPos = angleServo.getPosition();
         angleServo.setPosition(startingPos);
+
+        // ensure servoPos starts where servo is
+        servoPos = startingPos;
+        targetServoPos = startingPos;
     }
 
     @Override
     public void loop() {
-        // ---- Target servo position from left stick ----
-        // Stick up = smaller position, Stick down = larger position
-        targetServoPos -= gamepad1.left_stick_y * 0.01;
+        // ---- Servo Control (smooth easing from stick input) ----
+        targetServoPos -= gamepad1.left_stick_y * SERVO_STEP;
         targetServoPos = Math.max(0.0, Math.min(1.0, targetServoPos));
 
-        // ---- Smooth transition toward target ----
-        double step = 0.02;  // how fast it eases each loop (lower = smoother)
         if (servoPos < targetServoPos) {
-            servoPos = Math.min(servoPos + step, targetServoPos);
+            servoPos = Math.min(servoPos + SMOOTH_RATE, targetServoPos);
         } else if (servoPos > targetServoPos) {
-            servoPos = Math.max(servoPos - step, targetServoPos);
+            servoPos = Math.max(servoPos - SMOOTH_RATE, targetServoPos);
         }
         angleServo.setPosition(servoPos);
 
-        // ---- Adjust motor power with right stick ----
-        motorPower = -gamepad1.right_stick_y;
-        motorPower = Math.max(0.0, Math.min(1.0, motorPower));
-
-        // ---- Spin motor only while right trigger is held ----
-        if (gamepad1.right_trigger > 0.1) {
-            launchMotor.setPower(motorPower);
-        } else {
-            launchMotor.setPower(0);
+        // ---- Motor RPM Control (A/B buttons) ----
+        if (gamepad1.a) {
+            targetRPM += RPM_STEP;
+            if (targetRPM > MAX_RPM) targetRPM = MAX_RPM;
         }
+        if (gamepad1.b) {
+            targetRPM -= RPM_STEP;
+            if (targetRPM < 0) targetRPM = 0;
+        }
+
+        // Convert targetRPM into motor power (simple linear scale)
+        motorPower = (double) targetRPM / MAX_RPM;
+        motorPower = Math.min(1.0, Math.max(0.0, motorPower));
+        launchMotor.setPower(motorPower);
 
         // ---- Telemetry ----
         telemetry.addData("Servo Pos", servoPos);
         telemetry.addData("Target Servo", targetServoPos);
-        telemetry.addData("Motor Power Set", motorPower);
-        telemetry.addData("Trigger Held", gamepad1.right_trigger > 0.1);
+        telemetry.addData("Motor Power", motorPower);
         telemetry.update();
     }
 }
