@@ -63,7 +63,12 @@ public class testLaunch extends OpMode {
         // Convert targetRPM into motor power (simple linear scale)
         motorPower = (double) targetRPM / MAX_RPM;
         motorPower = Math.min(1.0, Math.max(0.0, motorPower));
-        launchMotor.setPower(motorPower);
+
+        if (gamepad1.right_trigger > 0.1) {
+            launchMotor.setPower(motorPower);
+        } else {
+            launchMotor.setPower(0);
+        }
 
         // ---- Telemetry ----
         telemetry.addData("Servo Pos", servoPos);
