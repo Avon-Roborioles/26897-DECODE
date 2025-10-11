@@ -14,7 +14,7 @@ public class testLaunch extends OpMode {
     // --- Motor control ---
     private int targetRPM = 1000;   // starting rpm
     private double motorPower = 0;  // persistent power value
-    private final int RPM_STEP = 100;
+    private final int RPM_STEP = 10;
     private final int MAX_RPM = 6000; // adjust to your motor specs
 
     // --- Servo control ---
