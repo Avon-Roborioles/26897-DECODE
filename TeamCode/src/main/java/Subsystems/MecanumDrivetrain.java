@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class MecanumDrivetrain {
     private final MecanumDrive drive;
     private final Motor frontLeft, backLeft, frontRight, backRight;
-
     public MecanumDrivetrain(HardwareMap hardwareMap) {
         frontLeft = new Motor(hardwareMap, "frontLeft");
         backLeft = new Motor(hardwareMap, "backLeft");
@@ -19,7 +18,6 @@ public class MecanumDrivetrain {
 
         drive = new MecanumDrive(frontLeft, backLeft, frontRight, backRight);
     }
-
     public void drive(double strafe, double forward, double turn) {
         drive.driveRobotCentric(strafe, forward, turn);
     }
