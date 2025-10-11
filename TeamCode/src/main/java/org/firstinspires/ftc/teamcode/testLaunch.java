@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp(name="Launch + Smooth Servo", group="TeleOp")
-public class testLaunch extends OpMode {
+public class  testLaunch extends OpMode {
 
     private DcMotor launchMotor;
     private Servo angleServo;
