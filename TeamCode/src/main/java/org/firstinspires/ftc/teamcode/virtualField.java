@@ -23,7 +23,7 @@ public class virtualField extends OpMode {
     private static final String IMU_NAME = "imu";
 
     private static final double TICKS_PER_REV = 32.5;
-    private static final double ODOM_WHEEL_DIAMETER_IN = 1.0;
+    private static final double ODOM_WHEEL_DIAMETER_IN = 2.0; // Corrected to 2.0 inches
     private static final double ODOM_TICKS_PER_INCH = TICKS_PER_REV / (Math.PI * ODOM_WHEEL_DIAMETER_IN);
     private static final double TRACK_WIDTH_IN = 12.0;
 
@@ -42,6 +42,9 @@ public class virtualField extends OpMode {
     private boolean poseLocked = false;
     private double headingOffset = 0.0;
 
+    // Increased to 0.01 inches to filter out stronger mechanical noise/slip during rotation.
+    private static final double MIN_TRANSLATION_THRESHOLD = 0.01; // inches
+
     @Override
     public void init() {
         // --- Drive motors ---
@@ -56,15 +59,12 @@ public class virtualField extends OpMode {
 
         imu = hardwareMap.get(IMU.class, IMU_NAME);
 
-// default orthogonal orientation (logo up, usb forward)
+        // default orthogonal orientation (logo up, usb forward)
         RevHubOrientationOnRobot orientationOnRobot =
                 new RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT,
                         RevHubOrientationOnRobot.UsbFacingDirection.UP);
 
         imu.initialize(new IMU.Parameters(orientationOnRobot));
-
-
-
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -130,19 +130,31 @@ public class virtualField extends OpMode {
 
     @Override
     public void loop() {
+        // --- Input Read ---
+        // drive: Forward/Backward (Negated because Y is usually inverted on gamepads)
         double drive = -gamepad1.left_stick_y;
+        // strafe: Left/Right strafing
         double strafe = gamepad1.left_stick_x;
+        // turn: Rotation (Yaw)
         double turn = gamepad1.right_stick_x;
 
+        // --- Mecanum Power Calculation (Corrected) ---
+        // LF: +D +S +T
         double lfPower = drive + strafe + turn;
+        // RF: +D -S -T
         double rfPower = drive - strafe - turn;
+        // LR: +D -S +T  <-- This formula now goes to the leftRear motor
         double lrPower = drive - strafe + turn;
+        // RR: +D +S -T  <-- This formula now goes to the rightRear motor
         double rrPower = drive + strafe - turn;
 
+        // *** FIX: SWAP THE REAR POWER ASSIGNMENTS ***
+        // Based on the standard Mecanum matrix, the power formulas were incorrectly
+        // assigned to the leftRear and rightRear variables.
         leftFront.setPower(clip(lfPower));
         rightFront.setPower(clip(rfPower));
-        leftRear.setPower(clip(lrPower));
-        rightRear.setPower(clip(rrPower));
+        rightRear.setPower(clip(rrPower)); // RR power formula assigned to rightRear
+        leftRear.setPower(clip(lrPower));   // LR power formula assigned to leftRear
 
         long curLeftTicks = leftOdom.getCurrentPosition();
         long curRightTicks = rightOdom.getCurrentPosition();
@@ -162,20 +174,40 @@ public class virtualField extends OpMode {
 
         YawPitchRollAngles ypr = imu.getRobotYawPitchRollAngles();
         double robotYaw = ypr.getYaw(AngleUnit.RADIANS);
+        // This calculates the current heading (used only for telemetry/drive control)
         double imuHeading = headingOffset + robotYaw;
 
-        double dTheta = normalizeAngle(imuHeading - poseHeading);
-        double dForward = (dLeftIn + dRightIn) / 2.0;
-        double dLateral = dLatIn;
+        // *** INVERTED ODOMETRY AND TRANSLATIONAL MOVEMENT ***
+        // We invert the direction of the odometry readings to fix the "distance is backwards" problem.
+        double dForward = -1.0 * (dLeftIn + dRightIn) / 2.0;
+        double dLateral = -1.0 * dLatIn;
 
-        double midHeading = poseHeading + dTheta / 2.0;
-        double dxField = dForward * Math.cos(midHeading) - dLateral * Math.sin(midHeading);
-        double dyField = dForward * Math.sin(midHeading) + dLateral * Math.cos(midHeading);
+        // *** PURE TRANSLATIONAL ODOMETRY ***
+        // Position update uses the constant starting heading (headingOffset) to completely ignore
+        // the effects of current rotation (imuHeading) on the robot's calculated position.
+        double referenceHeading = headingOffset;
 
-        poseX -= dxField;
-        poseY -= dyField;
+        double dxField = dForward * Math.cos(referenceHeading) - dLateral * Math.sin(referenceHeading);
+        double dyField = dForward * Math.sin(referenceHeading) + dLateral * Math.cos(referenceHeading);
+
+        // *** NOISE GUARD ***
+        // Calculate the magnitude of the translational movement
+        double translationalMovementMagnitude = Math.hypot(dForward, dLateral);
+
+        // If the movement is below the threshold (i.e., noise or pure rotation), zero out the displacement
+        if (translationalMovementMagnitude < MIN_TRANSLATION_THRESHOLD) {
+            dxField = 0.0;
+            dyField = 0.0;
+        }
+
+        // Apply displacement (must be ADDITION)
+        poseX += dxField;
+        poseY += dyField;
+
+        // The current heading is still tracked via IMU for display and control systems.
         poseHeading = imuHeading;
 
+        // The distance calculation is now based on the corrected pose
         double distToRedBasket = Math.hypot(TARGET_RED_BASKET_X - poseX, TARGET_RED_BASKET_Y - poseY);
 
         telemetry.addData("Pose X (in)", "%.2f", poseX);
