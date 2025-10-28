@@ -5,11 +5,8 @@
 //import com.qualcomm.robotcore.hardware.DcMotor;
 //import com.qualcomm.robotcore.hardware.Servo;
 
-//@TeleOp
-//public class IntakeTest extends LinearOpMode {
-//  private DcMotor intakeMotor;
-//private Servo intakeServo;
-//private double servopos;
+        motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
         servo.setPosition(servoPosition);
