@@ -11,10 +11,8 @@
 //private Servo intakeServo;
 //private double servopos;
 
-//@Override
-//public void runOpMode() throws InterruptedException {
-//  intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
-//intakeServo = hardwareMap.get(Servo.class, "intakeServo");
+        waitForStart();
+        servo.setPosition(servoPosition);
 
         while (opModeIsActive()) {
             if(gamepad1.aWasReleased()) targetVelocity += 50;
