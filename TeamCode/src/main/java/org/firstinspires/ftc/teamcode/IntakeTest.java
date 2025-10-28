@@ -1,9 +1,15 @@
 //package org.firstinspires.ftc.teamcode;
 
-//import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-//import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-//import com.qualcomm.robotcore.hardware.DcMotor;
-//import com.qualcomm.robotcore.hardware.Servo;
+@TeleOp
+public class IntakeTest extends LinearOpMode {
+    private DcMotorEx motor;
+    private Servo servo;
+    private double targetVelocity = 100;
+    private double servoPosition = 0.5;
+    @Override
+    public void runOpMode() {
+        motor = hardwareMap.get(DcMotorEx.class, "intakemotor");
+        servo = hardwareMap.get(Servo.class, "intakeservo");
 
         motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
