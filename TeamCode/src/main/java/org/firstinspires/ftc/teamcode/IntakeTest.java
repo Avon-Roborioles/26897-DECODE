@@ -18,23 +18,15 @@
 
 //waitForStart();
 
-//while (opModeIsActive()
-//    if (gamepad1.a) {
-//                intakeMotor.setPower(1);
-//            } else if (gamepad1.b) {
-//                intakeMotor.setPower(-1);
-//            } else {
-//                intakeMotor.setPower(0);
-//            }
-//
-//            while(gamepad1.dpad_up) {
-//                this.servopos += 0.05;
-//                intakeServo.setPosition(servopos);
-//            }
-//            while(gamepad1.dpad_down) {
-//                this.servopos -= 0.05;
-//                intakeServo.setPosition(servopos);
-//            }
-//        }
-//    }
-//}
+            if(gamepad1.xWasReleased()) servoPosition += 0.0075;
+            if(gamepad1.yWasReleased()) servoPosition -= 0.0075;
+            servo.setPosition(servoPosition);
+
+            telemetry.addData("Target Velocity", targetVelocity);
+            telemetry.addData("Current Velocity", motor.getVelocity());
+            telemetry.addData("Servo Position", servoPosition);
+            telemetry.update();
+        }
+        motor.setVelocity(0);
+    }
+}
