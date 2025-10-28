@@ -16,7 +16,10 @@
 //  intakeMotor = hardwareMap.get(DcMotor.class, "intakeMotor");
 //intakeServo = hardwareMap.get(Servo.class, "intakeServo");
 
-//waitForStart();
+        while (opModeIsActive()) {
+            if(gamepad1.aWasReleased()) targetVelocity += 50;
+            if(gamepad1.bWasReleased()) targetVelocity -= 50;
+            motor.setVelocity(targetVelocity);
 
             if(gamepad1.xWasReleased()) servoPosition += 0.0075;
             if(gamepad1.yWasReleased()) servoPosition -= 0.0075;
