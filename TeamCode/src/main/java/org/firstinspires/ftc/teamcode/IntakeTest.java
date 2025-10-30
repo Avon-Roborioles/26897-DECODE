@@ -7,44 +7,50 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.CRServo;
 @TeleOp
 public class IntakeTest extends LinearOpMode {
-    private DcMotorEx motor;
+    private DcMotor motor;
     private CRServo crservo;
     private CRServo crservo1;
     private CRServo crservo2;
-    private int targetDistance = 50;
+    private int targetDistance = 0;
+
     @Override
     public void runOpMode() {
-        motor = hardwareMap.get(DcMotorEx.class, "intakemotor");
+        motor = hardwareMap.get(DcMotor.class, "intakemotor");
         crservo = hardwareMap.get(CRServo.class, "intakeservo");
         crservo1 = hardwareMap.get(CRServo.class, "intakeservo1");
         crservo2 = hardwareMap.get(CRServo.class, "intakeservo2");
 
-        motor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         waitForStart();
-        crservo.setPower(0);
 
         while (opModeIsActive()) {
-            if(gamepad1.aWasReleased()) {targetDistance = 50;}
-            if(gamepad1.bWasReleased()) {targetDistance = 0;}
-            motor.setTargetPosition(targetDistance);
+            // Change target with buttons
+            if (gamepad1.a) targetDistance = 300;
+            if (gamepad1.b) targetDistance = 0;
 
-            while (gamepad1.right_trigger > 0.001) {
+            motor.setTargetPosition(targetDistance);
+            motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            motor.setPower(0.5);
+
+            // Servo control
+            if (gamepad1.right_trigger > 0.001) {
                 crservo.setPower(1);
-                crservo1.setPower(1);
-                crservo2.setPower(1);
+                crservo1.setPower(-1);
+                crservo2.setPower(-1);
+            } else {
+                crservo.setPower(0);
+                crservo1.setPower(0);
+                crservo2.setPower(0);
             }
-//            if(gamepad1.rightBumperWasReleased()) {crservo1.setPower(1);}
-//            if(gamepad1.leftBumperWasReleased()) {crservo1.setPower(0);}
-//            if(gamepad1.rightBumperWasReleased()) {crservo2.setPower(1);}
-//            if(gamepad1.leftBumperWasReleased()) {crservo2.setPower(0);}
 
             telemetry.addData("Target Position", targetDistance);
-            telemetry.addData("Current Velocity", motor.getVelocity());
-            telemetry.addData("Servo Power", crservo.getPower());
+            telemetry.addData("Current Position", motor.getCurrentPosition());
+            telemetry.addData("Busy", motor.isBusy());
             telemetry.update();
         }
-        motor.setVelocity(0);
+
+        motor.setPower(0);
     }
 }
