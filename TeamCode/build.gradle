@@ -26,4 +26,5 @@ dependencies {
     // EasyOpenCV + AprilTag
     implementation 'org.openftc:easyopencv:1.7.3'
     implementation 'org.openftc:apriltag:2.1.0'
+    implementation 'edu.wpi.first.wpilib.networktables.java:networktables-java:+'
 }

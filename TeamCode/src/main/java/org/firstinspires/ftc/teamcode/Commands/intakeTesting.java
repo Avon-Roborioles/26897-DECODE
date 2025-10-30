@@ -19,6 +19,7 @@ public class intakeTesting {
 //      }
     }
     public void liftIntake(Servo lift) {
-        this.intakeLioft
+        this.intakeLift = lift;
+        intakeLift.setPosition(0.467);
     }
 }
