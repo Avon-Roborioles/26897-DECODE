@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.CRServo;
 @TeleOp
 public class IntakeTest extends LinearOpMode {
@@ -12,19 +11,15 @@ public class IntakeTest extends LinearOpMode {
     private CRServo crservo1;
     private CRServo crservo2;
     private int targetDistance = 0;
-
     @Override
     public void runOpMode() {
         motor = hardwareMap.get(DcMotor.class, "intakemotor");
         crservo = hardwareMap.get(CRServo.class, "intakeservo");
         crservo1 = hardwareMap.get(CRServo.class, "intakeservo1");
         crservo2 = hardwareMap.get(CRServo.class, "intakeservo2");
-
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         waitForStart();
-
         while (opModeIsActive()) {
             // Change target with buttons
             if (gamepad1.a) targetDistance = 520;
@@ -50,7 +45,6 @@ public class IntakeTest extends LinearOpMode {
             telemetry.addData("Busy", motor.isBusy());
             telemetry.update();
         }
-
         motor.setPower(0);
     }
 }
