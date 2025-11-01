@@ -8,6 +8,7 @@ import static org.firstinspires.ftc.teamcode.pedroPathing.tuning.FollowerConstan
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -39,7 +40,7 @@ import java.util.List;
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/13/2024
  */
-@Config
+@Configurable
 @Autonomous(name = "Forward Zero Power Acceleration Tuner", group = "Autonomous Pathing Tuning")
 public class ForwardZeroPowerAccelerationTuner extends OpMode {
     private ArrayList<Double> accelerations = new ArrayList<>();
@@ -91,7 +92,7 @@ public class ForwardZeroPowerAccelerationTuner extends OpMode {
             motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         }
 
-        telemetryA = new MultipleTelemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetryA = new Telemetry(this.telemetry, FtcDashboard.getInstance().getTelemetry());
         telemetryA.addLine("The robot will run forward until it reaches " + VELOCITY + " inches per second.");
         telemetryA.addLine("Then, it will cut power from the drivetrain and roll to a stop.");
         telemetryA.addLine("Make sure you have enough room.");
