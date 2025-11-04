@@ -9,7 +9,7 @@
  * applications built using the FTC SDK. Each individual 'build.gradle' in those applications
  * can simply contain the one line:
  *
- *      apply from: '../build.common.gradle'
+ * apply from: '../build.common.gradle'
  *
  * which will pick up this file here. This approach allows makes it easier to integrate
  * updates to the FTC SDK into your code.
@@ -21,7 +21,8 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 34
+    // --- UPDATED: Set to 36 to match targetSdkVersion and suppress dependency warnings ---
+    compileSdkVersion 36
 
     signingConfigs {
         release {
@@ -52,7 +53,7 @@ android {
         applicationId 'com.qualcomm.ftcrobotcontroller'
         minSdkVersion 24
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 36
+        targetSdkVersion 36 // Already set to 36, which is good.
 
         /**
          * We keep the versionCode and versionName of robot controller applications in sync with
@@ -66,21 +67,33 @@ android {
          * @see <a href="http://developer.android.com/tools/building/configuring-gradle.html">Configure Your Build</a>
          * @see <a href="http://developer.android.com/tools/publishing/versioning.html">Versioning Your App</a>
          */
-        def manifestFile = project(':FtcRobotController').file('src/main/AndroidManifest.xml');
-        def manifestText = manifestFile.getText()
-        //
-        def vCodePattern = Pattern.compile("versionCode=\"(\\d+(\\.\\d+)*)\"")
-        def matcher = vCodePattern.matcher(manifestText)
-        matcher.find()
-        def vCode = Integer.parseInt(matcher.group(1))
-        //
-        def vNamePattern = Pattern.compile("versionName=\"(.*)\"")
-        matcher = vNamePattern.matcher(manifestText);
-        matcher.find()
-        def vName = matcher.group(1)
-        //
-        versionCode vCode
-        versionName vName
+        def appVersion
+        def versionCodeInt = 1 // Default if code can't be read
+        def versionNameStr = "1.0" // Default if name can't be read
+
+// 1. Get the text from the AndroidManifest.xml file
+        def manifestFile = project(':FtcRobotController').file('src/main/AndroidManifest.xml')
+        def manifestText = ""
+        if (manifestFile.exists()) {
+            manifestText = manifestFile.getText()
+        }
+
+// 2. Extract Version Code using Groovy regex
+        appVersion = manifestText =~ /versionCode="(\d+)/
+        if (appVersion.hasMatch()) {
+            // The first group (index 0) of the match contains the capture group (index 1)
+            versionCodeInt = appVersion[0][1].toInteger()
+        }
+
+// 3. Extract Version Name using Groovy regex
+        def appName = manifestText =~ /versionName="(.*?)"/
+        if (appName.hasMatch()) {
+            versionNameStr = appName[0][1]
+        }
+
+// 4. Apply the values
+        versionCode versionCodeInt
+        versionName versionNameStr
     }
 
     // http://google.github.io/android-gradle-dsl/current/com.android.build.gradle.internal.dsl.BuildType.html
@@ -102,8 +115,9 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // --- UPDATED: Changing to 11 resolves the deprecation warning when using a modern JDK ---
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     packagingOptions {
@@ -115,4 +129,3 @@ android {
 repositories {
     mavenCentral()
 }
-
