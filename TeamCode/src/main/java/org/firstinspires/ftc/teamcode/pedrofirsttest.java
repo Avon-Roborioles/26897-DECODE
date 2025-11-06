@@ -21,7 +21,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
  * * FIX: This version uses standard FTC DcMotor objects for manual control,
  * completely bypassing all problematic Follower motor access methods.
  */
-@Autonomous(name = "Pedro Somewhat then Tweak tf out", group = "Pedro")
+@Autonomous(name = "Pedro Somewhat then tweak tf out", group = "Pedro")
 public class pedrofirsttest extends OpMode {
 
     // --- VARIABLES ---
