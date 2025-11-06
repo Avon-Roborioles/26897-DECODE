@@ -24,11 +24,11 @@ public class ShooterTest extends LinearOpMode {
         servo.setPosition(servoPosition);
 
         while (opModeIsActive()) {
-            if(gamepad1.aWasPressed()) {targetVelocity += 50;}
+            if(gamepad1.aWasReleased()) {targetVelocity += 50;}
             if(gamepad1.bWasReleased()) {targetVelocity -= 50;}
             motor.setVelocity(targetVelocity);
 
-            if(gamepad1.xWasPressed()) {servoPosition += 0.075;}
+            if(gamepad1.xWasReleased()) {servoPosition += 0.075;}
             if(gamepad1.yWasReleased()) {servoPosition -= 0.075;}
             servo.setPosition(servoPosition);
 
