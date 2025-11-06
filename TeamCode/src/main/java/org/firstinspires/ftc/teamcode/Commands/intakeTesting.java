@@ -19,6 +19,6 @@
 ////      }
 //    }
 //    public void liftIntake(Servo lift) {
-//        this.intakeLioft
+//        this.intakeLift
 //    }
 //}

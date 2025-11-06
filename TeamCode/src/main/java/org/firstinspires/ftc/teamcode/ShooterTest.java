@@ -10,8 +10,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class ShooterTest extends LinearOpMode {
     private DcMotorEx motor;
     private Servo servo;
-    private double targetVelocity = 100;
-    private double servoPosition = 0.5;
+    private double targetVelocity = 1700;
+    private double servoPosition = 0.2275;
     @Override
     public void runOpMode() {
         motor = hardwareMap.get(DcMotorEx.class, "shootermotor");
