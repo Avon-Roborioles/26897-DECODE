@@ -11,6 +11,7 @@ public class IntakeTest extends LinearOpMode {
     private CRServo crservo;
     private CRServo crservo1;
     private CRServo crservo2;
+    private CRServo crServo3;
     private int targetDistance = 0;
 
     @Override
@@ -19,6 +20,7 @@ public class IntakeTest extends LinearOpMode {
         crservo = hardwareMap.get(CRServo.class, "intakeservo");
         crservo1 = hardwareMap.get(CRServo.class, "intakeservo1");
         crservo2 = hardwareMap.get(CRServo.class, "intakeservo2");
+        crServo3 = hardwareMap.get(CRServo.class,"IntakeServo3");
 
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -39,10 +41,12 @@ public class IntakeTest extends LinearOpMode {
                 crservo.setPower(1);
                 crservo1.setPower(-1);
                 crservo2.setPower(-1);
+                crServo3.setPower(1);
             } else {
                 crservo.setPower(0);
                 crservo1.setPower(0);
                 crservo2.setPower(0);
+                crServo3.setPower(0);
             }
 
             telemetry.addData("Target Position", targetDistance);
