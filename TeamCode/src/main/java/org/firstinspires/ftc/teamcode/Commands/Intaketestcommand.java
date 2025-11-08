@@ -24,3 +24,4 @@ public class Intaketestcommand extends CommandBase {
         return !intakeSubsystem.isBusy();
     }
 }
+
