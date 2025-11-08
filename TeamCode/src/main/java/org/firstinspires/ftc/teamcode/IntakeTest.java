@@ -27,7 +27,7 @@ public class IntakeTest extends LinearOpMode {
 
         while (opModeIsActive()) {
             // Change target with buttons
-            if (gamepad1.a) targetDistance = 300;
+            if (gamepad1.a) targetDistance = 520;
             if (gamepad1.b) targetDistance = 0;
 
             motor.setTargetPosition(targetDistance);
