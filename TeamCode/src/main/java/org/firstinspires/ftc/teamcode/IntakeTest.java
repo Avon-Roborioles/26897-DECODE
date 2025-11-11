@@ -46,7 +46,7 @@ public class IntakeTest extends LinearOpMode {
                 crservo.setPower(0);
                 crservo1.setPower(0);
                 crservo2.setPower(0);
-                crServo3.setPower(0);
+                crServo3.setPower(0); 
             }
 
             telemetry.addData("Target Position", targetDistance);
