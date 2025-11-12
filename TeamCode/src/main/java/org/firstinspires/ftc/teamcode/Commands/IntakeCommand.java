@@ -20,5 +20,9 @@ public class IntakeCommand extends CommandBase {
     public void end(boolean interrupted) {
         intakeSubsystem.stopMotor();
     }
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
 
 }
