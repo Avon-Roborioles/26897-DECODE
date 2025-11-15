@@ -1,14 +1,13 @@
 //package org.firstinspires.ftc.teamcode;
 //
-//import com.arcrobotics.ftclib.gamepad.GamepadEx;
 //import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-//<<<<<<< Updated upstream
+//
 //import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
 //
-//=======
+//
 //import Subsystems.MecanumDrivetrain;
-//>>>>>>> Stashed changes
+//
 //@TeleOp(name = "Drive For Now")
 //public class MyTeleOp extends LinearOpMode {
 //
