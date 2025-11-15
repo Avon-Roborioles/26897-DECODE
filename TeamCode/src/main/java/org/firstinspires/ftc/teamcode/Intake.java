@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.CRServo;
 @TeleOp
-public class IntakeTest extends LinearOpMode {
+public class Intake extends LinearOpMode {
     private DcMotor motor;
     private CRServo crservo;
     private CRServo crservo1;
@@ -45,7 +45,7 @@ public class IntakeTest extends LinearOpMode {
                 crservo.setPower(0);
                 crservo1.setPower(0);
                 crservo2.setPower(0);
-                crServo3.setPower(0);
+                crServo3.setPower(0); 
             }
 
             telemetry.addData("Target Position", targetDistance);
