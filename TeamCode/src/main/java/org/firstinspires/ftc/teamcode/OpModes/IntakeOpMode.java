@@ -21,6 +21,7 @@ public class IntakeOpMode extends CommandOpMode {
     operator = new GamepadEx(gamepad2);
     operator.getGamepadButton(GamepadKeys.Button.A)
             .whenPressed(new IntakeCommand(intakeSubsystem));
-    operator.getGamepadButton(GamepadKeys.Button.B).whenPressed(new IntakeStopCommand(intakeSubsystem));
+    operator.getGamepadButton(GamepadKeys.Button.B)
+            .whenPressed(new IntakeStopCommand(intakeSubsystem));
     }
 }
