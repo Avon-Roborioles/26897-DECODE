@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Commands.IntakeCommand;
+import org.firstinspires.ftc.teamcode.Commands.IntakeStopCommand;
 import org.firstinspires.ftc.teamcode.Subsystems.IntakeSubsystem;
 
 @TeleOp
@@ -20,5 +21,6 @@ public class IntakeOpMode extends CommandOpMode {
     operator = new GamepadEx(gamepad2);
     operator.getGamepadButton(GamepadKeys.Button.A)
             .whenPressed(new IntakeCommand(intakeSubsystem));
+    operator.getGamepadButton(GamepadKeys.Button.B).whenPressed(new IntakeStopCommand(intakeSubsystem));
     }
 }
