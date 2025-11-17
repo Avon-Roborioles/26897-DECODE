@@ -1,76 +1,61 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.Range;
 
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-@TeleOp(name = "LimelightTracker", group = "Limelight")
+import org.firstinspires.ftc.teamcode.limelightcommand;
+import org.firstinspires.ftc.teamcode.limelightsubsystem;
+
+import java.util.List;
+
+@TeleOp
+
 public class limelighttracker extends LinearOpMode {
-
     private DcMotor frontLeft, frontRight, backLeft, backRight;
-    private Servo panServo;
     private Limelight3A limelight;
+    private Servo servo;
+    private double servoPos = 0.5;
+    public static int tag;
 
-    private final double SERVO_HOME_POS = 0.5;
-    private final double SERVO_TUNE_KP = 0.012;
-    private final double MAX_SERVO_INCREMENT = 0.015;
-    private final double TX_DEADBAND = 1.5;
-
-    // These must match your robot's physical setup
-    private static final double TARGET_HEIGHT_IN = 14.0; // AprilTag center height in inches
-    private static final double CAMERA_HEIGHT_IN = 6.0;  // Limelight lens height from floor in inches
-    private static final double CAMERA_ANGLE_DEG = 0; // Limelight angle relative to horizontal
-
-
-
+    private limelightcommand limelightCommand;
+    private limelightsubsystem limelightSubsystem;
+    private LLResult result;
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
+        // Hardware
+        servo = hardwareMap.get(Servo.class, "swingArm");
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft = hardwareMap.get(DcMotor.class, "backLeft");
         backRight = hardwareMap.get(DcMotor.class, "backRight");
 
-        panServo = hardwareMap.get(Servo.class, "pan_servo");
-        panServo.setPosition(SERVO_HOME_POS);
 
-        limelight = hardwareMap.get(Limelight3A.class, "limeLight");
-        limelight.start();
+        limelightCommand = new limelightcommand(limelightSubsystem, result);
+
+        telemetry.setMsTransmissionInterval(11);
+        servo.setPosition(0.67);
         limelight.pipelineSwitch(0);
+        limelight.start();
 
-        frontLeft.setDirection(DcMotor.Direction.REVERSE);
-        backLeft.setDirection(DcMotor.Direction.REVERSE);
 
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+
         waitForStart();
 
-        double currentServoPos = SERVO_HOME_POS;
-
         while (opModeIsActive()) {
-
-            // Get latest Limelight result
-            LLResult result = limelight.getLatestResult();
-
-            boolean tagDetected = (result != null && result.isValid());
-            double tx = 0, ty = 0;
-            double distanceInches = 0;
-
-            if (tagDetected) {
-                tx = result.getTx();
-                ty = result.getTy();
-
-                distanceInches = calculateDistance(ty);
-            }
-
-
             // --- Mecanum drive control ---
             double drive = -gamepad1.left_stick_y;
             double strafe = gamepad1.left_stick_x;
@@ -81,38 +66,79 @@ public class limelighttracker extends LinearOpMode {
             backLeft.setPower(drive - strafe + twist);
             backRight.setPower(drive + strafe - twist);
 
-            // --- Servo tracking ---
-            if (tagDetected) {
-                double error = -tx;
-                if (Math.abs(error) > TX_DEADBAND) {
-                    double change = Range.clip(error * SERVO_TUNE_KP, -MAX_SERVO_INCREMENT, MAX_SERVO_INCREMENT);
-                    currentServoPos = Range.clip(currentServoPos + change, 0.0, 1.0);
-                    panServo.setPosition(currentServoPos);
+
+            LLStatus status = limelight.getStatus();
+
+            // ---- Limelight logic (servo adjustment) ----
+            LLResult result = limelight.getLatestResult();
+            if (result != null && result.isValid()) {
+                Pose3D botpose = result.getBotpose();
+                telemetry.addData("tx", result.getTx());
+                telemetry.addData("ty", result.getTy());
+                //telemetry.addData("Botpose", botpose.toString());
+                telemetry.addData("tags",result.getFiducialResults());
+                telemetry.addData("distance", getDistance());
+//                telemetry.addData("LL", "Temp: %.1fC, CPU: %.1f%%, FPS: %d",
+//                        status.getTemp(), status.getCpu(),(int)status.getFps());
+                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+                    telemetry.addData("Fiducial", "ID: %d, Family: %s, X: %.2f, Y: %.2f", fr.getFiducialId(), fr.getFamily(), fr.getTargetXDegrees(), fr.getTargetYDegrees());
                 }
+//                for (LLResultTypes.FiducialResult fr : fiducialResults) {
+//                    if (fr.getFiducialId() == 21) {
+//                        tag = 21;
+//                        limelight.pipelineSwitch(3);
+//                    } else if (fr.getFiducialId() == 22) {
+//                        tag = 22;
+//                        limelight.pipelineSwitch(3);
+//                    } else if (fr.getFiducialId() == 23) {
+//                        tag = 23;
+//                        limelight.pipelineSwitch(3);
+//                    }
+//                }
+//                telemetry.addData("tag", tag);
+                telemetry.update();
 
-                telemetry.addData("Status", "Tracking Tag");
-                telemetry.addData("tx", tx);
-                telemetry.addData("ty", ty);
-                telemetry.addData("Distance (in)", "%.2f", distanceInches);
 
-            } else {
-                panServo.setPosition(SERVO_HOME_POS);
-                telemetry.addData("Status", "No Tag Detected");
+
+                if (result.getTx() != 0) {
+                    servoPos -= 0.0001 * result.getTx();
+                }
             }
 
-            telemetry.update();
-            idle();
+            if (servoPos > 0.95) {
+                servoPos = 0.95;
+            } else if (servoPos < 0.15) {
+                servoPos = 0.15;
+            }
+            servo.setPosition(servoPos);
         }
+        LLResult result = limelight.getLatestResult();
+        List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
 
 
     }
-    private double calculateDistance(double ty) {
-        // Convert angle to radians
-        double angleRad = Math.toRadians(CAMERA_ANGLE_DEG + ty);
 
-        // d = (h_target - h_camera) / tan(angle_to_target)
-        return (TARGET_HEIGHT_IN - CAMERA_HEIGHT_IN) / Math.tan(angleRad);
+    int getTag(){
+        return tag;
     }
 
+    double getDistance() {
+        LLResult result = limelight.getLatestResult();
+        double targetOffsetAngle_Vertical = result.getTy();
 
+        double limelightMountAngleDegrees = 0;
+        double limelightLensHeightInches = 14.9;
+        double goalHeightInches = 28.5;
+
+        double angleToGoalDegrees = limelightMountAngleDegrees + targetOffsetAngle_Vertical;
+        double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+
+        return (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
+    }
+
+    double getYawAprilTag() {
+        LLResult result = limelight.getLatestResult();
+        return result.getBotpose().getOrientation().getYaw(AngleUnit.DEGREES);
+    }
 }
