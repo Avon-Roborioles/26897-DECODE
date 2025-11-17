@@ -35,7 +35,7 @@ public class limelighttracker extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         // Hardware
-        servo = hardwareMap.get(Servo.class, "swingArm");
+        servo = hardwareMap.get(Servo.class, "pan_servo");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
