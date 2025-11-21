@@ -11,7 +11,7 @@ import org.firstinspires.ftc.teamcode.Telemetry.TelemetryItem;
 public class ArtifactSensor {
 
     ColorSensor sensor;
-    DistanceSensor dSensor;
+    //DistanceSensor dSensor;
 
     double sum;
     double nRed,nGreen, nBlue;
@@ -20,13 +20,13 @@ public class ArtifactSensor {
     double greenDifference;
     public ArtifactSensor(HardwareMap hMap){
         sensor=hMap.get(ColorSensor.class,"colorSensor");
-        dSensor = hMap.get(DistanceSensor.class,"distanceSensor");
+        //dSensor = hMap.get(DistanceSensor.class,"distanceSensor");
 
         new TelemetryData("Red",()->1.*nRed);
         new TelemetryData("Green",()->1.*nGreen);
         new TelemetryData("Blue",()->1.*nBlue);
         new TelemetryItem(()->"Color"+this.read().toString());
-        new TelemetryData("Inches Away",()->dSensor.getDistance(DistanceUnit.INCH));
+        //new TelemetryData("Inches Away",()->dSensor.getDistance(DistanceUnit.INCH));
         new TelemetryData("Normal Difference",()->normalDifference);
         new TelemetryData("Purple Difference",()->purpleDifference);
         new TelemetryData("Green Difference",()->greenDifference);
@@ -79,9 +79,9 @@ public class ArtifactSensor {
 //        } else {
 //            color = ArtifactColor.NOTHING;
 //        }
-        if (dSensor.getDistance(DistanceUnit.INCH)>4.+.8){
-            color=ArtifactColor.NOTHING;
-        }
+//        if (dSensor.getDistance(DistanceUnit.INCH)>4.+.8){
+//            color=ArtifactColor.NOTHING;
+//        }
         return  color;
     }
 }
