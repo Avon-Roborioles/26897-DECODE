@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.command.CommandScheduler;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.LLStatus;
@@ -12,7 +14,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
-import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.limelightcommand;
 import org.firstinspires.ftc.teamcode.limelightsubsystem;
 
@@ -21,7 +22,7 @@ import java.util.List;
 @TeleOp
 
 public class limelighttracker extends LinearOpMode {
-    private MecanumDrivetrain driveTrain;
+    private DcMotor frontLeft, frontRight, backLeft, backRight;
     private Limelight3A limelight;
     private Servo servo;
     private double servoPos = 0.5;
@@ -37,7 +38,10 @@ public class limelighttracker extends LinearOpMode {
         servo = hardwareMap.get(Servo.class, "pan_servo");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
-        driveTrain = new MecanumDrivetrain(hardwareMap);
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
 
 
         limelightCommand = new limelightcommand(limelightSubsystem, result);
@@ -52,11 +56,15 @@ public class limelighttracker extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            double forward = -gamepad1.left_stick_y; // Corrected variable name for clarity
+            // --- Mecanum drive control ---
+            double drive = -gamepad1.left_stick_y;
             double strafe = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x;
+            double twist = gamepad1.right_stick_x;
 
-            driveTrain.drive(strafe, forward, turn);
+            frontLeft.setPower(drive + strafe + twist);
+            frontRight.setPower(drive - strafe - twist);
+            backLeft.setPower(drive - strafe + twist);
+            backRight.setPower(drive + strafe - twist);
 
 
             LLStatus status = limelight.getStatus();
