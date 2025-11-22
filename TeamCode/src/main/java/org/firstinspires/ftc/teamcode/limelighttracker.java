@@ -26,7 +26,7 @@ public class limelighttracker extends LinearOpMode {
     private MecanumDrivetrain driveTrain;
     private Limelight3A limelight;
     private Servo servo;
-    private double servoPos = 0.5;
+    private double servoPos = 0.3;
     public static int tag;
 
     private limelightcommand limelightCommand;
@@ -45,7 +45,7 @@ public class limelighttracker extends LinearOpMode {
         limelightCommand = new limelightcommand(limelightSubsystem, result);
 
         telemetry.setMsTransmissionInterval(11);
-        servo.setPosition(0.67);
+        servo.setPosition(servoPos);
         limelight.pipelineSwitch(0);
         limelight.start();
 
@@ -96,7 +96,7 @@ public class limelighttracker extends LinearOpMode {
 
 
                 if (result.getTx() != 0) {
-                    servoPos -= 0.0001 * result.getTx();
+                    servoPos -= 0.0001367 * result.getTx();
                 }
             }
 
@@ -123,10 +123,10 @@ public class limelighttracker extends LinearOpMode {
 
         double limelightMountAngleDegrees = 0;
         double limelightLensHeightInches = 14.9;
-        double goalHeightInches = 28.5;
+        double goalHeightInches = 29.867;
 
         double angleToGoalDegrees = limelightMountAngleDegrees + targetOffsetAngle_Vertical;
-        double angleToGoalRadians = angleToGoalDegrees * (3.14159 / 180.0);
+        double angleToGoalRadians = Math.toRadians(angleToGoalDegrees);
 
         return (goalHeightInches - limelightLensHeightInches) / Math.tan(angleToGoalRadians);
     }
