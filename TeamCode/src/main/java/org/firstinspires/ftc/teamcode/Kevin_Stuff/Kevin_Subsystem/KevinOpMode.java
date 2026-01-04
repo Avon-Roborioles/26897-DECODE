@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes;
+package org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem;
 
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Commands.KevinCommand;
-import org.firstinspires.ftc.teamcode.Subsystems.KevinSubsystem;
 
 @TeleOp
 public class KevinOpMode extends CommandOpMode {

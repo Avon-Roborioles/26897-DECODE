@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes;
+package org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Commands.ServoCommand;
 import org.firstinspires.ftc.teamcode.Commands.ServoCommand2;
-import org.firstinspires.ftc.teamcode.Subsystems.KevinServo;
 
 public class ServoOpMode extends CommandOpMode {
     private KevinServo kevinServo;
