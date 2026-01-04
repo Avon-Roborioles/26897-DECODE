@@ -1,13 +1,17 @@
-package org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem;
+package org.firstinspires.ftc.teamcode.Kevin_Stuff;
 
 import com.arcrobotics.ftclib.command.CommandOpMode;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.Commands.ServoCommand;
 import org.firstinspires.ftc.teamcode.Commands.ServoCommand2;
 
+@Disabled
+@TeleOp
 public class ServoOpMode extends CommandOpMode {
     private KevinServo kevinServo;
     private GamepadEx driver, operator;

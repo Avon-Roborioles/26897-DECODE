@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem;
+package org.firstinspires.ftc.teamcode.Kevin_Stuff;
 
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;

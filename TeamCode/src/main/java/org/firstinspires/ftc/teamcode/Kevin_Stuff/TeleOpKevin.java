@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem;
+package org.firstinspires.ftc.teamcode.Kevin_Stuff;
 
 import static java.lang.Math.PI;
 
@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.PedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Telemetry.TelemetryManager;
 
 import java.util.function.Supplier;
+@Disabled
 
 @TeleOp
 public class TeleOpKevin extends OpMode {

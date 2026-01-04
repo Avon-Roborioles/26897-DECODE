@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.Commands;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
-import org.firstinspires.ftc.teamcode.Kevin_Stuff.Kevin_Subsystem.KevinServo;
+import org.firstinspires.ftc.teamcode.Kevin_Stuff.KevinServo;
 
 public class ServoCommand extends CommandBase {
     private KevinServo kevinServo;
