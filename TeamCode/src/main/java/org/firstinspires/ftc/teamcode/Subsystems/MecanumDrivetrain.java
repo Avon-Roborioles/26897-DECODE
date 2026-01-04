@@ -6,30 +6,30 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class MecanumDrivetrain {
     private final MecanumDrive drive;
-    private final Motor frontLeft, backLeft, frontRight, backRight;
-
-    private static final boolean FRONT_LEFT_DEFAULT_INVERTED = true;
+    private final Motor fL, fR, bL, bR;
 
     public MecanumDrivetrain(HardwareMap hardwareMap) {
-        frontLeft = new Motor(hardwareMap, "frontLeft");
-        backLeft = new Motor(hardwareMap, "backLeft");
-        frontRight = new Motor(hardwareMap, "frontRight");
-        backRight = new Motor(hardwareMap, "backRight");
+        fL = new Motor(hardwareMap, "frontLeft");
+        fR = new Motor(hardwareMap, "frontRight");
+        bL = new Motor(hardwareMap, "backLeft");
+        bR = new Motor(hardwareMap, "backRight");
 
-        frontLeft.setInverted(FRONT_LEFT_DEFAULT_INVERTED);
-        backRight.setInverted(true);
+        // Usually, the left side needs to be inverted for forward to be positive
+        fL.setInverted(true);
+        bL.setInverted(true);
+        bR.setInverted(true);
+        fR.setInverted(true);
 
-        drive = new MecanumDrive(frontLeft, backLeft, frontRight, backRight);
+        drive = new MecanumDrive(fL, fR, bL, bR);
     }
 
+    /**
+     * @param strafe  The x speed (horizontal)
+     * @param forward The y speed (vertical)
+     * @param turn    The rotation speed
+     */
     public void drive(double strafe, double forward, double turn) {
-        final double TURN_THRESHOLD = 0.05;
-
-        if (Math.abs(turn) > TURN_THRESHOLD) {
-            frontLeft.setInverted(false);
-        } else {
-            frontLeft.setInverted(FRONT_LEFT_DEFAULT_INVERTED);
-        }
-        drive.driveRobotCentric(strafe, forward, -turn);
+        // FTCLib's driveRobotCentric handles the normalization for you
+        drive.driveRobotCentric(strafe, forward, turn);
     }
 }

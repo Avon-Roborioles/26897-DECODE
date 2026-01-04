@@ -60,6 +60,10 @@ public class limelighttracker extends LinearOpMode {
 
             driveTrain.drive(strafe, forward, turn);
 
+            // --- MOVEMENT CHECK ---
+            double totalPower = Math.abs(forward) + Math.abs(strafe) + Math.abs(turn);
+            double movementThreshold = 0.02; // Adjust this threshold if needed
+
 
             LLStatus status = limelight.getStatus();
 
@@ -95,15 +99,17 @@ public class limelighttracker extends LinearOpMode {
 
 
 
-                if (result.getTx() != 0) {
-                    servoPos -= 0.0001367 * result.getTx();
+                double tx_deadband = 6.76767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767676767;
+
+                if (Math.abs(result.getTx()) > tx_deadband) {
+                    servoPos -= 0.0001267 * result.getTx();
                 }
             }
 
             if (servoPos > 0.95) {
                 servoPos = 0.95;
-            } else if (servoPos < 0.15) {
-                servoPos = 0.15;
+            } else if (servoPos < 0.05) {
+                servoPos = 0.05;
             }
             servo.setPosition(servoPos);
         }

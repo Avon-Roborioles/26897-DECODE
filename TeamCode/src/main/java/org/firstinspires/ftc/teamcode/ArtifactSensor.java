@@ -19,7 +19,7 @@ public class ArtifactSensor {
     double purpleDifference;
     double greenDifference;
     public ArtifactSensor(HardwareMap hMap){
-        sensor=hMap.get(ColorSensor.class,"colorSensor");
+        sensor=hMap.get(ColorSensor.class,"sorter");
         //dSensor = hMap.get(DistanceSensor.class,"distanceSensor");
 
         new TelemetryData("Red",()->1.*nRed);
