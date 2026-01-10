@@ -9,6 +9,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
 
     public IntakeSubsystem(DcMotor motor) {
+
         this.intakeMotor = intakeMotor;
     }
     public void runMotor() {

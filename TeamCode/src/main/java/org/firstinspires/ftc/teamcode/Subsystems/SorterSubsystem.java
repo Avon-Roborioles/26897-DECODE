@@ -37,9 +37,6 @@ public class SorterSubsystem {
         targetTicks = encoder.getCurrentPosition() + TICKS_PER_SLOT;
     }
 
-    public void setIntaking(boolean intaking) {
-        this.isIntaking = intaking;
-    }
 
     public void update(ElapsedTime timer) {
         // 1. If we aren't sorting a specific color AND we aren't in intake mode, STOP.
@@ -48,35 +45,34 @@ public class SorterSubsystem {
             return;
         }
 
-        int error = targetTicks - encoder.getCurrentPosition();
+        int currentTicks = artifactEncoder.getCurrentPosition();
+        int error = targetTicks - currentTicks;
         int absError = Math.abs(error);
 
-        // 2. Movement Logic (Same as before)
-        if (absError > TICK_TOLERANCE) {
-            artifactServo.setPower(error > 0 ? 0.2 : -0.2);
-            sensorCheckTime = timer.milliseconds() + 400;
-        } else if (absError > 50) {
-            artifactServo.setPower(error > 0 ? 0.02 : -0.02);
-            sensorCheckTime = timer.milliseconds() + 400;
-        } else {
-            // 3. We are at a slot!
+        // STEP 1: Fast movement if we are far away
+        if (absError > TICK_TOLERANCE) { // 1670+ ticks away
+            double power = (error > 0) ? MAX_SORT_POWER : -MAX_SORT_POWER;
+            artifactServo.setPower(power);
+            sensorCheckTime = timer.milliseconds() + 600;
+        }
+        // STEP 2: Final Stop
+        else {
             artifactServo.setPower(0);
-
-            if(targetColor != ArtifactColor.NOTHING) {
-                ArtifactColor seenColor = sensor.read();
-
-                if (seenColor == ArtifactColor.NOTHING) {
-                    targetTicks += TICKS_PER_SLOT;
-                } else if (seenColor == targetColor) {
-                    if(sensorCheckTime < 0){sensorCheckTime = timer.milliseconds() + 400;}
-                    if(sensorCheckTime <= timer.milliseconds()) {
-                        checkColorAndKick();
-                    }
+            if (timer.milliseconds() >= sensorCheckTime) {
+                if (artifactSensor.read() == targetColor) {
+                    kicker.setPower(1);
+                    sleep(500);
+                    kicker.setPower(-1);
+                    sleep(200);
+                    kicker.setPower(0);
+                    targetColor = ArtifactColor.NOTHING;
+                    intake.setPower(0);
                 } else {
+                    // Wrong color, move to next slot
                     targetTicks += TICKS_PER_SLOT;
+                    sensorCheckTime = timer.milliseconds() + 600;
                 }
             }
-
         }
     }
 

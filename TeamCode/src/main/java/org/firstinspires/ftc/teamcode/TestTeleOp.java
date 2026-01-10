@@ -172,7 +172,7 @@ public class TestTeleOp extends LinearOpMode {
                     artifactServo.setPower(power);
                     sensorCheckTime = timer.milliseconds() + 600;
                 }
-                // STEP 2: Final Stop (Within 50 ticks)
+                // STEP 2: Final Stop
                 else {
                     artifactServo.setPower(0);
                     if (timer.milliseconds() >= sensorCheckTime) {
