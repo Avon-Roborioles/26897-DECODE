@@ -8,12 +8,13 @@ import com.qualcomm.robotcore.hardware.Servo; // Changed from CRServo
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Subsystems.FieldDrivetrain;
 import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.Subsystems.ShooterSubsystem;
 
-@TeleOp(name = "Test Teleop")
-public class TestTeleOp extends LinearOpMode {
-    private MecanumDrivetrain drive;
+@TeleOp(name = "Field Centric Teleop")
+public class Field_Teleop extends LinearOpMode {
+    private FieldDrivetrain drive;
     private ShooterSubsystem shooter;
 
     // CHANGED: Position based servo
@@ -32,7 +33,7 @@ public class TestTeleOp extends LinearOpMode {
 
     // --- NEW SORTING VARIABLES ---
     // UPDATE THESE VALUES using the telemetry readouts from the D-Pad calibration
-    private final double[] SLOT_POSITIONS = {0.2256,0.3023,0.3828};
+    private final double[] SLOT_POSITIONS = {0.2272,0.3072,0.3839};
     private int currentSlotIndex = 0; // Tracks which of the 3 slots is active
 
     // Time to wait for servo to physically move before reading sensor (milliseconds)
@@ -47,7 +48,7 @@ public class TestTeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        drive = new MecanumDrivetrain(hardwareMap);
+        drive = new FieldDrivetrain(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         intake = hardwareMap.get(DcMotor.class, "intake");
 
