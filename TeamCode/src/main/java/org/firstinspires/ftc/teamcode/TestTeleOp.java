@@ -162,12 +162,38 @@ public class TestTeleOp extends LinearOpMode {
                         sleep(100);
                         kicker.setPower(0);
 
+<<<<<<< HEAD
                         targetColor = ArtifactColor.NOTHING;
                         intake.setPower(0);
                     } else {
                         // WRONG COLOR: Next slot
                         incrementSlot();
                         sensorCheckTime = timer.milliseconds() + SERVO_MOVE_DELAY;
+=======
+                // STEP 1: Fast movement if we are far away
+                if (absError > TICK_TOLERANCE) { // 1670+ ticks away
+                    double power = (error > 0) ? MAX_SORT_POWER : -MAX_SORT_POWER;
+                    artifactServo.setPower(power);
+                    sensorCheckTime = timer.milliseconds() + 600;
+                }
+                // STEP 2: Final Stop
+                else {
+                    artifactServo.setPower(0);
+                    if (timer.milliseconds() >= sensorCheckTime) {
+                        if (artifactSensor.read() == targetColor) {
+                            kicker.setPower(1);
+                            sleep(500);
+                            kicker.setPower(-1);
+                            sleep(200);
+                            kicker.setPower(0);
+                            targetColor = ArtifactColor.NOTHING;
+                            intake.setPower(0);
+                        } else {
+                            // Wrong color, move to next slot
+                            targetTicks += TICKS_PER_SLOT;
+                            sensorCheckTime = timer.milliseconds() + 600;
+                        }
+>>>>>>> 07f70403f547835f99768f83acf1d0c358551ca3
                     }
                 }
             }

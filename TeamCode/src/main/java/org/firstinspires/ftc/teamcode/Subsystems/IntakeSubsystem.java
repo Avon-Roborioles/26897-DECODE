@@ -28,12 +28,21 @@ public class IntakeSubsystem {
     private boolean magazineFull = false;
     private double sensorCheckTime = -1;
 
+<<<<<<< HEAD
     public IntakeSubsystem(HardwareMap hardwareMap) {
         intake = hardwareMap.get(DcMotor.class, "intake");
         kicker = hardwareMap.get(DcMotor.class, "kicker");
         artifactServo = hardwareMap.get(Servo.class, "sorterservo");
         artifactServo.setPosition(SLOT_POSITIONS[0]);
         artifactSensor = new ArtifactSensor(hardwareMap);
+=======
+    public IntakeSubsystem(DcMotor motor) {
+
+        this.intakeMotor = intakeMotor;
+    }
+    public void runMotor() {
+        intakeMotor.setPower(1.0);
+>>>>>>> 07f70403f547835f99768f83acf1d0c358551ca3
     }
 
     // --- 1. CONTINUOUS INDEXING (Call in TeleOp loop) ---
