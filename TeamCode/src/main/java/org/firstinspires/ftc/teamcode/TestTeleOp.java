@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
+import com.arcrobotics.ftclib.command.WaitCommand;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,10 +13,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.Subsystems.ShooterSubsystem;
 
-@TeleOp(name = "Test Teleop")
+@TeleOp(name = "Old Teleop")
 public class TestTeleOp extends LinearOpMode {
+    private double kickStartTimex = -1; // -1 means we are not currently kicking
+
     private MecanumDrivetrain drive;
     private ShooterSubsystem shooter;
+
+    private ElapsedTime timer = new ElapsedTime();
 
     // CHANGED: Position based servo
     private ServoImplEx artifactServo;
@@ -23,7 +29,6 @@ public class TestTeleOp extends LinearOpMode {
     private ArtifactSensor artifactSensor;
     private DcMotor kicker;
     private DcMotor intake;
-    private ElapsedTime timer = new ElapsedTime();
 
     private Servo indicatorLight;
 
@@ -32,11 +37,11 @@ public class TestTeleOp extends LinearOpMode {
 
     // --- NEW SORTING VARIABLES ---
     // UPDATE THESE VALUES using the telemetry readouts from the D-Pad calibration
-    private final double[] SLOT_POSITIONS = {0.2256,0.3023,0.3828};
+    private final double[] SLOT_POSITIONS = {0.7953,0.8658,0.9363};
     private int currentSlotIndex = 0; // Tracks which of the 3 slots is active
 
     // Time to wait for servo to physically move before reading sensor (milliseconds)
-    private final double SERVO_MOVE_DELAY = 700;
+    private final double SERVO_MOVE_DELAY = 1000;
 
     private boolean intakeSeekingEmpty = false;
     private int intakeSlotsChecked = 0;
@@ -45,8 +50,12 @@ public class TestTeleOp extends LinearOpMode {
     // For manual calibration
     private double manualPosition = 0.5;
 
+
+    ElapsedTime kickTimer = new ElapsedTime();
+    boolean isKicking = false;
+
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
         drive = new MecanumDrivetrain(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap, telemetry);
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -96,7 +105,7 @@ public class TestTeleOp extends LinearOpMode {
             }
 
 
-            boolean intakeRunning = Math.abs(gamepad2.left_trigger) > 0.2;
+            boolean intakeRunning = Math.abs(gamepad1.left_trigger) > 0.2;
 
             if (!intakeRunning) {
                 magazineFull = false;
@@ -136,67 +145,77 @@ public class TestTeleOp extends LinearOpMode {
                 }
             }
 
+
+
             // C. HANDLE COLOR SORTING (A/B Buttons)
             if (gamepad2.a) {
                 targetColor = ArtifactColor.GREEN;
-                // Note: Position servos reset immediately, so we just check the current pos
-                artifactServo.setPosition(SLOT_POSITIONS[0]);
-                currentSlotIndex = 0;
                 sensorCheckTime = timer.milliseconds() + 400;
+                ElapsedTime actionTimer = new ElapsedTime();
             }
             if (gamepad2.b) {
                 targetColor = ArtifactColor.PURPLE;
-                artifactServo.setPosition(SLOT_POSITIONS[0]);
-                currentSlotIndex = 0;
                 sensorCheckTime = timer.milliseconds() + 400;
             }
 
-            if (targetColor != ArtifactColor.NOTHING) {
-                // Wait for any previous movement to settle
-                if (timer.milliseconds() >= sensorCheckTime) {
-                    if (artifactSensor.read() == targetColor) {
-                        // MATCH FOUND: Kick
-                        kicker.setPower(1);
-                        sleep(500);
-                        kicker.setPower(-1);
-                        sleep(100);
-                        kicker.setPower(0);
 
-<<<<<<< HEAD
-                        targetColor = ArtifactColor.NOTHING;
-                        intake.setPower(0);
+
+// 2. Inside your TeleOp loop:
+            if (!isKicking) {
+                // Look for the artifact only if we aren't already kicking
+                if (targetColor != ArtifactColor.NOTHING && timer.milliseconds() >= sensorCheckTime) {
+                    if (artifactSensor.read() == targetColor) {
+                        isKicking = true;
+                        kickTimer.reset(); // Start the sequence
                     } else {
-                        // WRONG COLOR: Next slot
                         incrementSlot();
                         sensorCheckTime = timer.milliseconds() + SERVO_MOVE_DELAY;
-=======
-                // STEP 1: Fast movement if we are far away
-                if (absError > TICK_TOLERANCE) { // 1670+ ticks away
-                    double power = (error > 0) ? MAX_SORT_POWER : -MAX_SORT_POWER;
-                    artifactServo.setPower(power);
-                    sensorCheckTime = timer.milliseconds() + 600;
-                }
-                // STEP 2: Final Stop
-                else {
-                    artifactServo.setPower(0);
-                    if (timer.milliseconds() >= sensorCheckTime) {
-                        if (artifactSensor.read() == targetColor) {
-                            kicker.setPower(1);
-                            sleep(500);
-                            kicker.setPower(-1);
-                            sleep(200);
-                            kicker.setPower(0);
-                            targetColor = ArtifactColor.NOTHING;
-                            intake.setPower(0);
-                        } else {
-                            // Wrong color, move to next slot
-                            targetTicks += TICKS_PER_SLOT;
-                            sensorCheckTime = timer.milliseconds() + 600;
-                        }
->>>>>>> 07f70403f547835f99768f83acf1d0c358551ca3
                     }
                 }
+            } else {
+                // 3. The Sequence (State Machine)
+                double elapsed = kickTimer.milliseconds();
+
+                if (elapsed < 500) {
+                    kicker.setPower(1);
+                } else if (elapsed < 600) {
+                    kicker.setPower(-1);
+                } else if (elapsed < 850) {
+                    kicker.setPower(0);
+                    intake.setPower(0);
+                } else {
+                    // Sequence finished! Reset for next time
+                    kicker.setPower(0);
+                    isKicking = false;
+                    targetColor = ArtifactColor.NOTHING;
+                }
             }
+
+//            if (targetColor != ArtifactColor.NOTHING) {
+//                if (timer.milliseconds() >= sensorCheckTime) {
+//                    if (timer.milliseconds() >= sensorCheckTime) {
+//                        if (artifactSensor.read() == targetColor) {
+//                            ElapsedTime actionTimer = new ElapsedTime();
+//                            actionTimer.reset();
+//                            double elapsed = actionTimer.milliseconds();
+//                            // Sequence of events based on time instead of sleeps
+//                            if (elapsed < 1000) {
+//                                kicker.setPower(1);    // Kick out
+//                            } else if (elapsed < 1100) {
+//                                kicker.setPower(-1);   // Retract
+//                            } else if (elapsed < 1350) {
+//                                kicker.setPower(0);    // Wait for settle
+//                                intake.setPower(0);
+//                            }
+//                            targetColor = ArtifactColor.NOTHING;
+//                        } else {
+//                            // WRONG COLOR: Next slot
+//                            incrementSlot();
+//                            sensorCheckTime = timer.milliseconds() + SERVO_MOVE_DELAY;
+//                        }
+//                    }
+//                }
+//            }
 
             if(artifactSensor.read() == ArtifactColor.GREEN) {
                 indicatorLight.setPosition(0.500);
@@ -207,27 +226,58 @@ public class TestTeleOp extends LinearOpMode {
             }
 
             // Intake Power Logic
-            if (magazineFull && !gamepad2.x) {
+            if (magazineFull && !gamepad1.x) {
                 intake.setPower(0);
-            } else if (gamepad2.x) {
+            } else if (gamepad1.x) {
                 shooter.setZero();
-                intake.setPower(-gamepad2.left_trigger);
+                intake.setPower(-gamepad1.left_trigger);
             } else {
                 shooter.setZero();
-                intake.setPower(gamepad2.left_trigger);
+                intake.setPower(gamepad1.left_trigger);
             }
 
-            if(gamepad2.right_trigger > 0.5) {
+            if(gamepad2.right_trigger > 0.5 || gamepad1.right_trigger > 0.5) {
                 kicker.setPower(1);
             } else {
                 kicker.setPower(0);
             }
 
-            if(gamepad2.y) {
-                incrementSlot();
+
+            if(gamepad2.yWasPressed() || gamepad1.yWasPressed()) {
+                int ballcount = 0;
+                if (artifactSensor.read() == ArtifactColor.PURPLE || artifactSensor.read() == ArtifactColor.GREEN) {
+                    // MATCH FOUND: Kick
+                    kicker.setPower(1);
+                    sleep(500);
+                    kicker.setPower(-1);
+                    sleep(100);
+                    kicker.setPower(0);
+
+                    targetColor = ArtifactColor.NOTHING;
+                    intake.setPower(0);
+                } else {
+                    // WRONG COLOR: Next slot
+                    incrementSlot();
+                    ballcount = ballcount + 1;
+                    sensorCheckTime = timer.milliseconds() + SERVO_MOVE_DELAY;
+                }
+
+
             }
             if(gamepad1.dpad_left) {
                 artifactServo.setPosition(0);
+            }
+
+            if(gamepad1.x) {
+                shooter.mid();
+            }
+
+            if(gamepad1.left_bumper) {
+                shooter.decreaseVelocity();
+            }
+
+            if(gamepad1.right_bumper) {
+                shooter.increaseVelocity();
             }
 
 
@@ -235,10 +285,6 @@ public class TestTeleOp extends LinearOpMode {
 
             if (currentr && !lastr) {
                 incrementSlot();
-            }
-
-            if(gamepad1.x) {
-                shooter.mid();
             }
 
             lastr = currentr;

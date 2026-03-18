@@ -10,7 +10,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.List;
 import dev.nextftc.core.commands.Command;
 
-public class ShooterSubsystem {
+public class BlueShooterSubsystem {
     private DcMotorEx shooterMotor;
     private Servo panServo;
     private Limelight3A limelight;
@@ -21,25 +21,22 @@ public class ShooterSubsystem {
     private double servoPos = 0.5;
 
     // --- NEW MANUAL VELOCITY VARIABLES ---
-    private double targetVelocity = 0;
-    private double velocityIncrement = 50; // Amount to increase by when button is pressed
+    private double targetVelocity = 0; // Starts at 100 as requested
+    private double velocityIncrement = 25; // Amount to increase by when button is pressed
 
     // Constants needed for Distance Calculation only
     final double GOAL_HEIGHT = 29.867;
 
-    double manualspeed = 800;
-    double lastdistance = 10;
 
 
-
-    public ShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
+    public BlueShooterSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooter");
-        shooterMotor.setVelocityPIDFCoefficients(590,0,11.2,15);
+        shooterMotor.setVelocityPIDFCoefficients(610,0,11.2,15);
         panServo = hardwareMap.get(Servo.class, "pan_servo");
         panServo.setPosition(0.5);
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(1);
         limelight.start();
         indicatorLight = hardwareMap.get(Servo.class, "teamlight");
     }
@@ -58,14 +55,6 @@ public class ShooterSubsystem {
                 return false;
             }
         };
-    }
-
-    public void red() {
-        limelight.pipelineSwitch(2);
-    }
-
-    public void blue() {
-        limelight.pipelineSwitch(2);
     }
 
 
@@ -94,17 +83,16 @@ public class ShooterSubsystem {
             double tx_deadband = 0.0167;
 
             //if (result.getTx() != 0) {
-              //servoPos -= 0.00006 * result.getTx();
+            //servoPos -= 0.00006 * result.getTx();
             //}
 
             if (Math.abs(correctedTx) > tx_deadband) {
                 servoPos -= 0.0002137 * correctedTx;
             }
             else if ((Math.abs(correctedTx) < tx_deadband) && (Math.abs(correctedTx) > 0.0001)) {
-            servoPos -= 0.0000257 * correctedTx;
+                servoPos -= 0.0000257 * correctedTx;
             }
         }
-
 
         servoPos = Math.max(0.05, Math.min(0.95, servoPos));
         panServo.setPosition(servoPos);
@@ -119,23 +107,13 @@ public class ShooterSubsystem {
         // 2. Get the distance (Still calculated, just not used for speed)
         double currentDistance = getDistance();
 
-        if(currentDistance > 0 && lastdistance > 0) {
-            lastdistance = currentDistance;
-            targetVelocity = (5.08145 * currentDistance) + 654.27;
+        targetVelocity = (5.08145 * currentDistance) + 654.27;
 
-            shooterMotor.setVelocity(targetVelocity);
-            if (shooterMotor.getVelocity() >= targetVelocity - 20 && shooterMotor.getVelocity() <= targetVelocity + 50) {
-                indicatorLight.setPosition(0.500);
-            } else {
-                indicatorLight.setPosition(0);
-            }
+        shooterMotor.setVelocity(targetVelocity);
+        if(shooterMotor.getVelocity() >= targetVelocity - 20) {
+            indicatorLight.setPosition(0.500);
         } else {
-            shooterMotor.setVelocity(manualspeed);
-            if(shooterMotor.getVelocity() >= manualspeed - 20 && shooterMotor.getVelocity() <= manualspeed + 50) {
-                indicatorLight.setPosition(0.500);
-            } else {
-                indicatorLight.setPosition(0);
-            }
+            indicatorLight.setPosition(0);
         }
 
         // 3. Telemetry: Show what velocity we are setting and the distance
@@ -147,11 +125,11 @@ public class ShooterSubsystem {
     }
 
     public void increaseVelocity() {
-        manualspeed += velocityIncrement;
+        targetVelocity += velocityIncrement;
     }
 
     public void decreaseVelocity() {
-        manualspeed -= velocityIncrement;
+        targetVelocity -= velocityIncrement;
     }
 
     public void setZero() {
