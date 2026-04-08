@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Subsystems;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -12,6 +14,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+@Configurable
 public class TurretSubsystem {
     private DcMotorEx swivel;
     private Limelight3A limelight;
@@ -20,9 +23,11 @@ public class TurretSubsystem {
     private Servo left, right, kicker;
     private DcMotorEx shooter1, shooter2;
     private Servo teamlight, colorlight;
+    com.bylazar.telemetry.TelemetryManager telemetryManager = PanelsTelemetry.INSTANCE.getTelemetry();
 
     private ElapsedTime shootTimer = new ElapsedTime();
     private boolean isShooting = false;
+    static double val = 6.8393;
 
     // Constants
     private final double GOAL_HEIGHT = 29.867;
@@ -32,6 +37,12 @@ public class TurretSubsystem {
     private boolean autoInitialized = false;
 
     double speed = 0;
+
+    private final double GOAL_X = 72.0;
+    private final double GOAL_Y = 72.0;
+    private final double TICKS_PER_RADIAN = 305.9;
+
+    private boolean trackingInitialized = false;
 
     public TurretSubsystem(HardwareMap hardwareMap) {
         swivel = hardwareMap.get(DcMotorEx.class, "swivel");
@@ -77,7 +88,7 @@ public class TurretSubsystem {
         if (currentdistance == -1){
             speed = 1400;
         }else {
-            speed = 6.7313 * currentdistance + 962.48;
+            speed = val * currentdistance + 962.48;
         }
         shooter1.setVelocity(-speed);
         shooter2.setVelocity(speed);
@@ -87,6 +98,11 @@ public class TurretSubsystem {
         } else {
             teamlight.setPosition(0);
         }
+
+        telemetryManager.addData("shooter1 speed",shooter1.getVelocity());
+        telemetryManager.addData("shooter2 speed",shooter2.getVelocity());
+        telemetryManager.update();
+
 
 
     }
@@ -129,5 +145,55 @@ public class TurretSubsystem {
         double targetOffsetAngle_Vertical = result.getTy();
         double angleToGoalRadians = Math.toRadians(LL_MOUNT_ANGLE + targetOffsetAngle_Vertical);
         return (GOAL_HEIGHT - LL_LENS_HEIGHT) / Math.tan(angleToGoalRadians);
+    }
+
+
+    public void updateOdometryTracking(com.pedropathing.geometry.Pose robotPose) {
+
+        // Initialize the tracking using run_to_position
+        if (!trackingInitialized) {
+            swivel.setTargetPosition(swivel.getCurrentPosition());
+            swivel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trackingInitialized = true;
+        }
+
+        double deltaX = GOAL_X - robotPose.getX();
+        double deltaY = GOAL_Y - robotPose.getY();
+        double absoluteAngleToGoal = Math.atan2(deltaY, deltaX);
+
+        // Calculate desired relative angle
+        double targetRelativeAngle = absoluteAngleToGoal - robotPose.getHeading();
+
+        // Get current turret angle based on encoder ticks
+        double currentTurretAngle = swivel.getCurrentPosition() / TICKS_PER_RADIAN;
+
+        // Find the SHORTEST distance between current and target
+        double angleError = targetRelativeAngle - currentTurretAngle;
+
+        // Normalize the ERROR so it never moves more than 180 degrees
+        while (angleError > Math.PI) angleError -= 2 * Math.PI;
+        while (angleError < -Math.PI) angleError += 2 * Math.PI;
+
+        // Set new target based on current position + shortest path
+        int targetTicks = (int) ((currentTurretAngle + angleError) * TICKS_PER_RADIAN);
+
+        swivel.setTargetPosition(targetTicks);
+        swivel.setPower(0.8);
+
+        double currentDistance = Math.hypot(deltaX, deltaY);
+        speed = val * currentDistance + 962.48;
+        shooter1.setVelocity(-speed);
+        shooter2.setVelocity(speed);
+
+        if (shooter2.getVelocity() >= speed - 25) {
+            teamlight.setPosition(0.5);
+        } else {
+            teamlight.setPosition(0);
+        }
+
+        telemetryManager.addData("Distance", currentDistance);
+        telemetryManager.addData("Target Ticks", targetTicks);
+        telemetryManager.addData("Current Ticks", swivel.getCurrentPosition());
+        telemetryManager.update();
     }
 }

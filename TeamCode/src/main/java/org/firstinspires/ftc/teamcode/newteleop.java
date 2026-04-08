@@ -53,21 +53,20 @@ public class newteleop extends LinearOpMode {
 
         turret = new TurretSubsystem(hardwareMap);
 
-
-        // Robot starts at Blue Back Corner, facing FORWARD (90 degrees / PI/2)
         follower.setStartingPose(new Pose(0, 0, Math.PI/2));
 
         waitForStart();
         follower.startTeleopDrive();
 
         while (opModeIsActive()) {
-            follower.update();
             boolean triggerPressed = gamepad1.right_trigger > 0.8;
 
-            turret.update();
+            follower.update();
 
-            // --- 4. DRIVETRAIN & SUBSYSTEMS ---
-            // Pedro TeleOp drive: (Forward, Strafe, Turn, FieldCentric)
+            // Pass the current pose from the follower to the new tracking method
+            turret.updateOdometryTracking(follower.getPose());
+
+
             follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
             if (gamepad1.right_trigger > 0.8) {
 
@@ -76,10 +75,6 @@ public class newteleop extends LinearOpMode {
                 left.setPosition(0.79);
 
                 right.setPosition(0.7);
-
-
-
-// Start the timer the exact moment the trigger is first pulled
 
                 if (!isTriggerHeld) {
 
@@ -96,20 +91,9 @@ public class newteleop extends LinearOpMode {
                 left.setPosition(0.62);
 
                 right.setPosition(0.8);
-
-
-
-// Reset the trigger state so the timer can restart next time
-
                 isTriggerHeld = false;
 
             }
-
-
-
-// --- KICKER LOGIC (Combined Manual & Auto) ---
-
-// Fire the kicker if 'A' is pressed OR if the trigger has been held for >= 999ms
 
             if (gamepad1.a || (isTriggerHeld && kickTimer.milliseconds() >= 999)) {
 
@@ -129,14 +113,6 @@ public class newteleop extends LinearOpMode {
             } else {
                 intake.setPower(-gamepad1.left_trigger);
             }
-
-            // --- KICKER LOGIC (Combined Manual & Auto) ---
-            // Fire the kicker if 'A' is pressed OR if the trigger has been held for >= 999ms
-//            if (gamepad1.a) {
-//                kicker.setPosition(0.35);
-//            } else {
-//                kicker.setPosition(0.015);
-//            }
 
             telemetry.update();
         }
