@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.util.Timing;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -17,6 +18,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.pedropathing.follower.Follower;
 
 import org.firstinspires.ftc.teamcode.PedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
 import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,7 @@ public class newteleop extends LinearOpMode {
     private Servo left, right,kicker;
 
     private TurretSubsystem turret;
+    private MecanumDrivetrain drive;
 
 
 
@@ -43,8 +46,10 @@ public class newteleop extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+
         follower = Constants.createFollower(hardwareMap);
 
+        drive = new MecanumDrivetrain(follower,hardwareMap);
         intake = hardwareMap.get(DcMotor.class, "intake");
         pass = hardwareMap.get(CRServo.class,"pass");
         kicker = hardwareMap.get(Servo.class,"kicker");
@@ -57,17 +62,19 @@ public class newteleop extends LinearOpMode {
 
         waitForStart();
         follower.startTeleopDrive();
+        turret.setDrivetrain(drive);
 
         while (opModeIsActive()) {
             boolean triggerPressed = gamepad1.right_trigger > 0.8;
 
             follower.update();
-
+            Vector currentVelocity = follower.getVelocity();
             // Pass the current pose from the follower to the new tracking method
-            turret.updateOdometryTracking(follower.getPose());
+            turret.updateOdometryTracking(follower.getPose(),currentVelocity);
 
 
-            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            drive.setDriveInputs(-gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
+            drive.udpateDriveInputs();
             if (gamepad1.right_trigger > 0.8) {
 
                 pass.setPower(-1);
@@ -93,6 +100,10 @@ public class newteleop extends LinearOpMode {
                 right.setPosition(0.8);
                 isTriggerHeld = false;
 
+            }
+
+            if(gamepad1.rightBumperWasPressed()) {
+                drive.robotTurn();
             }
 
             if (gamepad1.a || (isTriggerHeld && kickTimer.milliseconds() >= 999)) {

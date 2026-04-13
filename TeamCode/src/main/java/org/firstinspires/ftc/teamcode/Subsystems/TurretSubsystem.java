@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Subsystems;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.PanelsTelemetry;
+import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -27,7 +28,8 @@ public class TurretSubsystem {
 
     private ElapsedTime shootTimer = new ElapsedTime();
     private boolean isShooting = false;
-    static double val = 6.8393;
+    static double val = 4.5433;
+    public static double drivekP=1;
 
     // Constants
     private final double GOAL_HEIGHT = 29.867;
@@ -38,12 +40,14 @@ public class TurretSubsystem {
 
     double speed = 0;
 
-    private final double GOAL_X = 72.0;
-    private final double GOAL_Y = 72.0;
-    private final double TICKS_PER_RADIAN = 305.9;
+    static double GOAL_X = 64.0;
+    static double GOAL_Y = 83.0;
+    static double TICKS_PER_RADIAN = 653*2/Math.PI;
 
     private boolean trackingInitialized = false;
+    private MecanumDrivetrain drivetrain;
 
+    public static double timeOfFlight = 1;
     public TurretSubsystem(HardwareMap hardwareMap) {
         swivel = hardwareMap.get(DcMotorEx.class, "swivel");
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -62,6 +66,10 @@ public class TurretSubsystem {
 
         limelight.pipelineSwitch(0);
         limelight.start();
+    }
+
+    public void setDrivetrain(MecanumDrivetrain drivetrain){
+        this.drivetrain=drivetrain;
     }
 
     public void update() {
@@ -148,7 +156,7 @@ public class TurretSubsystem {
     }
 
 
-    public void updateOdometryTracking(com.pedropathing.geometry.Pose robotPose) {
+    public void updateOdometryTracking(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
 
         // Initialize the tracking using run_to_position
         if (!trackingInitialized) {
@@ -157,8 +165,13 @@ public class TurretSubsystem {
             trackingInitialized = true;
         }
 
-        double deltaX = GOAL_X - robotPose.getX();
-        double deltaY = GOAL_Y - robotPose.getY();
+        double virtualGoalX = GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
+        double virtualGoalY = GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+
+        // Calculate deltas based on the VIRTUAL goal, not the actual goal
+        double deltaX = virtualGoalX - robotPose.getX();
+        double deltaY = virtualGoalY - robotPose.getY();
+
         double absoluteAngleToGoal = Math.atan2(deltaY, deltaX);
 
         // Calculate desired relative angle
@@ -169,16 +182,25 @@ public class TurretSubsystem {
 
         // Find the SHORTEST distance between current and target
         double angleError = targetRelativeAngle - currentTurretAngle;
+        telemetryManager.addData("Raw Angle Error",angleError);
 
         // Normalize the ERROR so it never moves more than 180 degrees
         while (angleError > Math.PI) angleError -= 2 * Math.PI;
         while (angleError < -Math.PI) angleError += 2 * Math.PI;
+        telemetryManager.addData("Normalized Angle Error",angleError);
+
+//        angleError = Range.clip(angleError,-Math.PI,0);
+//        telemetryManager.addData("Clipped Angle Error",angleError);
 
         // Set new target based on current position + shortest path
-        int targetTicks = (int) ((currentTurretAngle + angleError) * TICKS_PER_RADIAN);
+        double clip = Range.clip((currentTurretAngle + angleError),Math.toRadians(-30),Math.toRadians(210));
+        int targetTicks = (int) (clip * TICKS_PER_RADIAN);
 
         swivel.setTargetPosition(targetTicks);
-        swivel.setPower(0.8);
+        swivel.setPower(1);
+
+        drivetrain.turretRequestTurn(clip*drivekP);
+
 
         double currentDistance = Math.hypot(deltaX, deltaY);
         speed = val * currentDistance + 962.48;
