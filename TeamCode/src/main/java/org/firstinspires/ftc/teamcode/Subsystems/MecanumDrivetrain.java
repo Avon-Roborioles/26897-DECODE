@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 public class MecanumDrivetrain {
     private final MecanumDrive drive;
@@ -13,6 +14,7 @@ public class MecanumDrivetrain {
     public double forward=0;
     public double turn = 0;
     public double requestedTurn = 0;
+    public boolean move = false;
 
     public boolean rotate = false;
     public MecanumDrivetrain(HardwareMap hardwareMap) {
@@ -70,8 +72,16 @@ public class MecanumDrivetrain {
 
     public void udpateDriveInputs(){
         if (!rotate) {
+            forward = Range.clip(forward,-1,1);
+            strafe = Range.clip(strafe,-1,1);
+            follower.setTeleOpDrive(forward, strafe, turn, true);
+        } else if(move) {
+            forward = Range.clip(forward,-0.3,0.3);
+            strafe = Range.clip(strafe,-0.3,0.3);
             follower.setTeleOpDrive(forward, strafe, turn, true);
         } else {
+            forward = Range.clip(forward,-1,1);
+            strafe = Range.clip(strafe,-1,1);
             follower.setTeleOpDrive(forward,strafe,requestedTurn,true);
         }
     }

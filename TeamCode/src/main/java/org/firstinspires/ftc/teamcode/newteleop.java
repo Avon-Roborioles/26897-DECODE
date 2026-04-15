@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.arcrobotics.ftclib.util.Timing;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = "New Teleop")
+@Configurable
 public class newteleop extends LinearOpMode {
     // Hardware
     private DcMotor intake;
@@ -34,7 +36,7 @@ public class newteleop extends LinearOpMode {
     private TurretSubsystem turret;
     private MecanumDrivetrain drive;
 
-
+    public static double kickerDelay = 3000;
 
     final double GOAL_HEIGHT = 29.867;
 
@@ -43,6 +45,7 @@ public class newteleop extends LinearOpMode {
 
     ElapsedTime kickTimer = new ElapsedTime();
     boolean isTriggerHeld = false;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -67,53 +70,37 @@ public class newteleop extends LinearOpMode {
         while (opModeIsActive()) {
             boolean triggerPressed = gamepad1.right_trigger > 0.8;
 
+// 1. Handle Intake/Pass Servos (Feeding Balls 1 & 2)
+            if (triggerPressed) {
+                left.setPosition(0.79);
+                right.setPosition(0.7);
+            } else {
+                left.setPosition(0.62);
+                right.setPosition(0.8);
+            }
+
+
             follower.update();
             Vector currentVelocity = follower.getVelocity();
             // Pass the current pose from the follower to the new tracking method
             turret.updateOdometryTracking(follower.getPose(),currentVelocity);
 
+            turret.updateShootingSequence(triggerPressed);
+
+            turret.setManualKick(gamepad1.a);
+
 
             drive.setDriveInputs(-gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
             drive.udpateDriveInputs();
-            if (gamepad1.right_trigger > 0.8) {
 
-                pass.setPower(-1);
-
-                left.setPosition(0.79);
-
-                right.setPosition(0.7);
-
-                if (!isTriggerHeld) {
-
-                    kickTimer.reset();
-
-                    isTriggerHeld = true;
-
-                }
-
+            if(gamepad1.y) {
+                drive.move = true;
             } else {
-
-                pass.setPower(0);
-
-                left.setPosition(0.62);
-
-                right.setPosition(0.8);
-                isTriggerHeld = false;
-
+                drive.move = false;
             }
 
             if(gamepad1.rightBumperWasPressed()) {
                 drive.robotTurn();
-            }
-
-            if (gamepad1.a || (isTriggerHeld && kickTimer.milliseconds() >= 999)) {
-
-                kicker.setPosition(0.30);
-
-            } else {
-
-                kicker.setPosition(0.012);
-
             }
 
 
@@ -123,6 +110,15 @@ public class newteleop extends LinearOpMode {
                 intake.setPower(gamepad1.left_trigger);
             } else {
                 intake.setPower(-gamepad1.left_trigger);
+            }
+
+
+            if (gamepad1.y){
+                if (turret.isOnTarget()) {
+                    intake.setPower(-1);
+                } else {
+                    intake.setPower(0);
+                }
             }
 
             telemetry.update();
