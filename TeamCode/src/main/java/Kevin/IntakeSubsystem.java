@@ -1,9 +1,9 @@
 package Kevin;
 
-import com.arcrobotics.ftclib.command.CommandBase;
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-public class IntakeSubsystem extends CommandBase {
+public class IntakeSubsystem extends SubsystemBase {
     private DcMotor intakeMotor = null;
 
     public IntakeSubsystem (DcMotor intakeMotor) {
