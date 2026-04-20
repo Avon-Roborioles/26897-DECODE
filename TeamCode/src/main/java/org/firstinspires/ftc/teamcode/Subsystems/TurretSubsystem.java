@@ -28,8 +28,10 @@ public class TurretSubsystem {
 
     private ElapsedTime shootTimer = new ElapsedTime();
     private boolean isShooting = false;
-    static double val = 4.5433;
-    public static double drivekP=0.82;
+    static double val = 6.17391;
+    static double y_int = 800;
+    public double drivekP=1;
+    public static double useSpeed = 1;
 
     // Constants
     private final double GOAL_HEIGHT = 29.867;
@@ -38,11 +40,13 @@ public class TurretSubsystem {
 
     private boolean autoInitialized = false;
 
-    double speed = 0;
+    public static double speed = 0;
 
-    static double GOAL_X = 65.4;
-    static double GOAL_Y = 80.0;
-    static double TICKS_PER_RADIAN = 653*2/Math.PI;
+    double GOAL_X = 67.67;
+    double GOAL_Y = 77.0;
+    static double AIM_GOAL_Y = 70;
+    static double AIM_GOAL_X = 70;
+    double TICKS_PER_RADIAN = 653*2/Math.PI;
 
     private boolean trackingInitialized = false;
     private MecanumDrivetrain drivetrain;
@@ -51,8 +55,8 @@ public class TurretSubsystem {
 
 
     // Dip Counting Variables
-    public static double RPM_DIP_THRESHOLD = 100;    // How much RPM must drop to count as a ball
-    public static double RPM_RECOVERED_THRESHOLD = 25; // How close to target RPM to be "recovered"
+    public double RPM_DIP_THRESHOLD = 50;    // How much RPM must drop to count as a ball
+    public double RPM_RECOVERED_THRESHOLD = 25; // How close to target RPM to be "recovered"
 
     private int ballsFired = 0;
     private boolean rpmCurrentlyDipped = false;
@@ -62,6 +66,12 @@ public class TurretSubsystem {
     private KickerState kickerState = KickerState.WAITING;
     private ElapsedTime kickTimer = new ElapsedTime();
     private boolean manualKick = false;
+
+    public static double kP = 50;
+    public static double kD = 0;
+    public static double kF = 21.3;
+
+    public static double moveshootconstant = 5.67;
 
 
     public TurretSubsystem(HardwareMap hardwareMap) {
@@ -75,8 +85,8 @@ public class TurretSubsystem {
 
         shooter1 = hardwareMap.get(DcMotorEx.class,"shooter1");
         shooter2 = hardwareMap.get(DcMotorEx.class,"shooter2");
-        shooter1.setVelocityPIDFCoefficients(24, 0, 23.18, 24.53);
-        shooter2.setVelocityPIDFCoefficients(24, 0, 23.18, 24.53);
+        shooter1.setVelocityPIDFCoefficients(kP,0,kD,kF);
+        shooter2.setVelocityPIDFCoefficients(kP,0,kD,kF);
 
         teamlight = hardwareMap.get(Servo.class,"teamlight");
 
@@ -173,7 +183,6 @@ public class TurretSubsystem {
 
 
     public void updateOdometryTracking(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
-
         // Initialize the tracking using run_to_position
         if (!trackingInitialized) {
             swivel.setTargetPosition(swivel.getCurrentPosition());
@@ -181,8 +190,16 @@ public class TurretSubsystem {
             trackingInitialized = true;
         }
 
-        double virtualGoalX = GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
-        double virtualGoalY = GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+        double virtualGoalX = AIM_GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
+        double virtualGoalY = AIM_GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+
+        kF += robotVelocity.getMagnitude() * timeOfFlight * moveshootconstant;
+
+        shooter1.setVelocityPIDFCoefficients(kP,0,0,kF);
+        shooter2.setVelocityPIDFCoefficients(kP,0,0,kF);
+
+        double distancey = GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+        double distancex = GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
 
         // Calculate deltas based on the VIRTUAL goal, not the actual goal
         double deltaX = virtualGoalX - robotPose.getX();
@@ -218,23 +235,13 @@ public class TurretSubsystem {
         drivetrain.turretRequestTurn(clip*drivekP);
 
 
-        double currentDistance = Math.hypot(deltaX, deltaY);
-        speed = val * currentDistance + 962.48;
+        double currentDistance = Math.hypot(distancex, distancey);
+        if(useSpeed == 1){speed = val * currentDistance + y_int;}
 
 
-        double currentVel = shooter2.getVelocity();
-        double error = speed - currentVel;
-        if (Math.abs(error) > 200) {
-            // FULL SEND: The wheels need 100% power to overcome inertia quickly
-            shooter2.setPower(1.0);
-        } else if (Math.abs(error) > 75) {
-            // APPROACH: Lower power slightly so we don't fly past the target speed
-            shooter2.setPower(0.8);
-        } else {
-            // PRECISION: Let the PIDF stabilize the 10-20 RPM variance
-            shooter2.setVelocity(speed);
-        }
-        shooter1.setPower(-shooter2.getPower());
+        shooter2.setVelocity(speed);
+        // Shooter 2 is the master, Shooter 1 is the slave it follows all the commands via the master
+        shooter1.setVelocity(-speed);
 
 
 
@@ -249,6 +256,7 @@ public class TurretSubsystem {
         telemetryManager.addData("Current Ticks", swivel.getCurrentPosition());
         telemetryManager.addData("shooter1 speed",shooter1.getVelocity());
         telemetryManager.addData("shooter2 speed",shooter2.getVelocity());
+        telemetryManager.addData("Target Speed",speed);
         telemetryManager.update();
     }
     public static double tolerance=16.7;
@@ -261,6 +269,9 @@ public class TurretSubsystem {
     }
 
     public void updateShootingSequence(boolean isTriggerHeld) {
+        // Optional: Add telemetry to FTC Dashboard to help you tune the thresholds
+        telemetryManager.addData("Balls Fired", ballsFired);
+        //telemetryManager.addData("RPM Error", rpmError);
         // --- MANUAL OVERRIDE (e.g., for the A button) ---
         if (manualKick) {
             kicker.setPosition(0.30);
@@ -315,13 +326,12 @@ public class TurretSubsystem {
                 break;
         }
 
-        // Optional: Add telemetry to FTC Dashboard to help you tune the thresholds
-        telemetryManager.addData("Balls Fired", ballsFired);
-        telemetryManager.addData("RPM Error", rpmError);
+
     }
 
     // Keep this so your TeleOp can still fire the kicker manually
     public void setManualKick(boolean manual) {
         this.manualKick = manual;
     }
+
 }
