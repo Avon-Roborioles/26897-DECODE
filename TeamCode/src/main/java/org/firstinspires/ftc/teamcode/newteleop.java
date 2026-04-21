@@ -93,13 +93,13 @@ public class newteleop extends LinearOpMode {
             drive.setDriveInputs(-gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
             drive.udpateDriveInputs();
 
-            if(gamepad1.y) {
+            if(gamepad1.right_trigger > 0) {
                 drive.move = true;
             } else {
                 drive.move = false;
             }
 
-            if(gamepad1.rightBumperWasPressed()) {
+            if(gamepad1.yWasPressed()) {
                 drive.robotTurn();
             }
 

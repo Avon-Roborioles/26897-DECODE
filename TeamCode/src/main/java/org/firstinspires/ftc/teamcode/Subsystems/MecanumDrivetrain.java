@@ -71,17 +71,12 @@ public class MecanumDrivetrain {
     }
 
     public void udpateDriveInputs(){
+        if(move) {
+            follower.setTeleOpDrive(Range.clip(forward,-0.3,0.3), Range.clip(strafe,-0.3,0.3), turn, true);
+        }
         if (!rotate) {
-            forward = Range.clip(forward,-1,1);
-            strafe = Range.clip(strafe,-1,1);
-            follower.setTeleOpDrive(forward, strafe, turn, true);
-        } else if(move) {
-            forward = Range.clip(forward,-0.3,0.3);
-            strafe = Range.clip(strafe,-0.3,0.3);
             follower.setTeleOpDrive(forward, strafe, turn, true);
         } else {
-            forward = Range.clip(forward,-1,1);
-            strafe = Range.clip(strafe,-1,1);
             follower.setTeleOpDrive(forward,strafe,requestedTurn,true);
         }
     }

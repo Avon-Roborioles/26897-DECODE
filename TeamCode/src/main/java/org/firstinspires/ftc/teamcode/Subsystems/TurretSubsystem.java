@@ -193,10 +193,6 @@ public class TurretSubsystem {
         double virtualGoalX = AIM_GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
         double virtualGoalY = AIM_GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
 
-        kF += robotVelocity.getMagnitude() * timeOfFlight * moveshootconstant;
-
-        shooter1.setVelocityPIDFCoefficients(kP,0,0,kF);
-        shooter2.setVelocityPIDFCoefficients(kP,0,0,kF);
 
         double distancey = GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
         double distancex = GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
