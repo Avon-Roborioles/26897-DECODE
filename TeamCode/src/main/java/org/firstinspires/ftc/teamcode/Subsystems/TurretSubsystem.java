@@ -28,8 +28,8 @@ public class TurretSubsystem {
 
     private ElapsedTime shootTimer = new ElapsedTime();
     private boolean isShooting = false;
-    static double val = 6.17391;
-    static double y_int = 800;
+    static double val = 4.17391;
+    static double y_int = 900;
     public double drivekP=1;
     public static double useSpeed = 1;
 
@@ -44,14 +44,14 @@ public class TurretSubsystem {
 
     double GOAL_X = 67.67;
     double GOAL_Y = 77.0;
-    static double AIM_GOAL_Y = 70;
-    static double AIM_GOAL_X = 70;
+    double AIM_GOAL_Y = 70;
+    double AIM_GOAL_X = 60;
     double TICKS_PER_RADIAN = 653*2/Math.PI;
 
     private boolean trackingInitialized = false;
     private MecanumDrivetrain drivetrain;
 
-    public static double timeOfFlight = 0.89;
+    public static double timeOfFlight = 0.69;
 
 
     // Dip Counting Variables
@@ -67,11 +67,16 @@ public class TurretSubsystem {
     private ElapsedTime kickTimer = new ElapsedTime();
     private boolean manualKick = false;
 
-    public static double kP = 50;
-    public static double kD = 0;
-    public static double kF = 21.3;
+    public double kP = 50;
+    public double kD = 0;
+    public double kF = 21.3;
 
-    public static double moveshootconstant = 5.67;
+
+    // Blue Side Goal Variables
+    static double BLUE_GOAL_X = -67.67;
+    static double BLUE_GOAL_Y = 77.0;
+    static double BLUE_AIM_GOAL_Y = 73.2;
+    static double BLUE_AIM_GOAL_X = -70;
 
 
     public TurretSubsystem(HardwareMap hardwareMap) {
@@ -182,7 +187,7 @@ public class TurretSubsystem {
     }
 
 
-    public void updateOdometryTracking(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
+    public void updateRed(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
         // Initialize the tracking using run_to_position
         if (!trackingInitialized) {
             swivel.setTargetPosition(swivel.getCurrentPosition());
@@ -228,7 +233,7 @@ public class TurretSubsystem {
         swivel.setTargetPosition(targetTicks);
         swivel.setPower(1);
 
-        drivetrain.turretRequestTurn(clip*drivekP);
+        //drivetrain.turretRequestTurn(clip*drivekP);
 
 
         double currentDistance = Math.hypot(distancex, distancey);
@@ -248,13 +253,98 @@ public class TurretSubsystem {
         }
 
         telemetryManager.addData("Distance", currentDistance);
-        telemetryManager.addData("Target Ticks", targetTicks);
-        telemetryManager.addData("Current Ticks", swivel.getCurrentPosition());
-        telemetryManager.addData("shooter1 speed",shooter1.getVelocity());
         telemetryManager.addData("shooter2 speed",shooter2.getVelocity());
         telemetryManager.addData("Target Speed",speed);
+        telemetryManager.addData("X Pos",robotPose.getX());
+        telemetryManager.addData("Y Pos",robotPose.getY());
         telemetryManager.update();
     }
+
+    public void updateBlue(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
+        // Initialize the tracking using run_to_position
+        if (!trackingInitialized) {
+            swivel.setTargetPosition(swivel.getCurrentPosition());
+            swivel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            trackingInitialized = true;
+        }
+
+        // Using BLUE aim variables
+        double virtualGoalX = BLUE_AIM_GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
+        double virtualGoalY = BLUE_AIM_GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+
+        // Using BLUE distance variables
+        double distancey = BLUE_GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
+        double distancex = BLUE_GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
+
+        // Calculate deltas based on the VIRTUAL goal, not the actual goal
+        double deltaX = virtualGoalX - robotPose.getX();
+        double deltaY = virtualGoalY - robotPose.getY();
+
+        double absoluteAngleToGoal = Math.atan2(deltaY, deltaX);
+
+        // Calculate desired relative angle
+        double targetRelativeAngle = absoluteAngleToGoal - robotPose.getHeading();
+
+        // Get current turret angle based on encoder ticks
+        double currentTurretAngle = swivel.getCurrentPosition() / TICKS_PER_RADIAN;
+
+        // Find the SHORTEST distance between current and target
+        double angleError = targetRelativeAngle - currentTurretAngle;
+        telemetryManager.addData("Raw Angle Error",angleError);
+
+        // Normalize the ERROR so it never moves more than 180 degrees
+        while (angleError > Math.PI) angleError -= 2 * Math.PI;
+        while (angleError < -Math.PI) angleError += 2 * Math.PI;
+        telemetryManager.addData("Normalized Angle Error",angleError);
+
+//        angleError = Range.clip(angleError,-Math.PI,0);
+//        telemetryManager.addData("Clipped Angle Error",angleError);
+
+        // Set new target based on current position + shortest path
+        double clip = Range.clip((currentTurretAngle + angleError),Math.toRadians(-110),Math.toRadians(110));
+        int targetTicks = (int) (clip * TICKS_PER_RADIAN);
+
+        swivel.setTargetPosition(targetTicks);
+        swivel.setPower(1);
+
+        //drivetrain.turretRequestTurn(clip*drivekP);
+
+
+        double currentDistance = Math.hypot(distancex, distancey);
+        if(useSpeed == 1){speed = val * currentDistance + y_int;}
+
+        double currentError = speed - shooter2.getVelocity();
+        double activeKP = kP;
+
+        if (currentError > 50) {
+            activeKP = kP * 3.5; // 350% boost during recovery or during changes while moving
+        }
+
+        shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
+        shooter1.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
+
+
+        shooter2.setVelocity(speed);
+        // Shooter 2 is the master, Shooter 1 is the slave it follows all the commands via the master
+        shooter1.setVelocity(-speed);
+
+
+
+        if (shooter2.getVelocity() >= speed - 25) {
+            teamlight.setPosition(0.5);
+        } else {
+            teamlight.setPosition(0);
+        }
+
+        telemetryManager.addData("Distance", currentDistance);
+        telemetryManager.addData("shooter2 speed",shooter2.getVelocity());
+        telemetryManager.addData("Target Speed",speed);
+        telemetryManager.addData("X Pos",robotPose.getX());
+        telemetryManager.addData("Y Pos",robotPose.getY());
+        telemetryManager.update();
+    }
+
+
     public static double tolerance=16.7;
 
     public boolean isOnTarget(){

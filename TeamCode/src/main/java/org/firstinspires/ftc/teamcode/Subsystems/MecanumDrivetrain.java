@@ -70,16 +70,33 @@ public class MecanumDrivetrain {
         }
     }
 
-    public void udpateDriveInputs(){
-        if(move) {
-            follower.setTeleOpDrive(Range.clip(forward,-0.3,0.3), Range.clip(strafe,-0.3,0.3), turn, true);
+    public void updateDriveInputs() {
+        // Start with the default joystick inputs
+        double currentForward = forward;
+        double currentStrafe = strafe;
+        double currentTurn = turn;
+
+        // 1. Apply slow mode if 'move' (right trigger) is active
+        if (move) {
+            currentForward = Range.clip(forward, -0.5, 0.5);
+            currentStrafe = Range.clip(strafe, -0.5, 0.5);
         }
-        if (!rotate) {
-            follower.setTeleOpDrive(forward, strafe, turn, true);
-        } else {
-            follower.setTeleOpDrive(forward,strafe,requestedTurn,true);
+
+        // 2. Override the turn value if turret auto-rotation is active
+        if (rotate) {
+            currentTurn = requestedTurn;
         }
+
+        // 3. Send the final calculated values to PedroPathing ONCE
+        follower.setTeleOpDrive(currentForward, currentStrafe, currentTurn, true);
     }
+
+    public void setDriveInputsHalfPower(double strafe, double forward, double turn) {
+        this.strafe = strafe * 0.5;
+        this.forward = forward * 0.5;
+        this.turn = turn * 0.5;
+    }
+
     public void turretRequestTurn(double turn){
         requestedTurn=turn;
     }

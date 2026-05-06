@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode; // make sure this aligns with class location
 
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -26,15 +27,15 @@ public class Red9BallDump extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(-25, -35, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(-12, -58.6, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1EndPose = new Pose(25, -58.6, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2StartPose = new Pose(-12, -33, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2EndPose = new Pose(22, -33, Math.toRadians(0));
-    private final Pose pickup3StartPose = new Pose(8, -50, Math.toRadians(0));
-    private final Pose pickup3EndPose = new Pose(18, -50, Math.toRadians(0));
-    private final Pose end = new Pose(-12,-45,Math.toRadians(45));
+    private final Pose startPose = new Pose(38.3074518, 60.214118, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(13.307, 25.2, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(26.3, 1.6, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1EndPose = new Pose(63.307, 1.6, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2StartPose = new Pose(26.3, 27.2, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2EndPose = new Pose(60.307, 27.2, Math.toRadians(0));
+    private final Pose pickup3StartPose = new Pose(46.307, 10.2, Math.toRadians(0));
+    private final Pose pickup3EndPose = new Pose(56.307, 10.2, Math.toRadians(0));
+    private final Pose end = new Pose(26.3,15.2,Math.toRadians(45));
 
     private Path scorePreload;
     private PathChain grab1,grabend1,getout1,moveover,dump1,getout12,score1,grab2,grabend2,scorepre2,score2,grab3,grabend3,scorepre3,endfr;
@@ -83,7 +84,7 @@ public class Red9BallDump extends OpMode {
 
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grab1 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup1Pose))
+                .addPath(new BezierCurve(scorePose, pickup1Pose,pickup1EndPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
@@ -406,7 +407,8 @@ public class Red9BallDump extends OpMode {
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
         autonomousPathUpdate();
-        turret.updatebutauto();
+        turret.updateRed(follower.getPose(),follower.getVelocity());
+        PoseStorageRed.currentPose = follower.getPose();
 
 
         // Feedback to Driver Hub for debugging
@@ -447,5 +449,10 @@ public class Red9BallDump extends OpMode {
         opmodeTimer.resetTimer();
         kicktimer.resetTimer();
         setPathState(0);
+    }
+
+    @Override
+    public void stop() {
+        PoseStorageRed.currentPose = follower.getPose();
     }
 }

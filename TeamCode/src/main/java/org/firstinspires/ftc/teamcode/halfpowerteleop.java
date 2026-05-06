@@ -24,9 +24,9 @@ import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "New Teleop")
+@TeleOp(name = "Half Power Teleop")
 @Configurable
-public class newteleop extends LinearOpMode {
+public class halfpowerteleop extends LinearOpMode {
     // Hardware
     private DcMotor intake;
     private CRServo pass, underpass;
@@ -83,17 +83,17 @@ public class newteleop extends LinearOpMode {
             follower.update();
             Vector currentVelocity = follower.getVelocity();
             // Pass the current pose from the follower to the new tracking method
-            turret.updateOdometryTracking(follower.getPose(),currentVelocity);
+            turret.updateRed(follower.getPose(),currentVelocity);
 
             turret.updateShootingSequence(triggerPressed);
 
             turret.setManualKick(gamepad1.a);
 
 
-            drive.setDriveInputs(-gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
-            drive.udpateDriveInputs();
+            drive.setDriveInputsHalfPower(-gamepad1.left_stick_x, -gamepad1.left_stick_y, -gamepad1.right_stick_x);
+            drive.updateDriveInputs();
 
-            if(gamepad1.right_trigger > 0) {
+            if(gamepad1.right_bumper) {
                 drive.move = true;
             } else {
                 drive.move = false;
@@ -113,13 +113,13 @@ public class newteleop extends LinearOpMode {
             }
 
 
-            if (gamepad1.y){
-                if (turret.isOnTarget()) {
-                    intake.setPower(-1);
-                } else {
-                    intake.setPower(0);
-                }
-            }
+//            if (gamepad1.y){
+//                if (turret.isOnTarget()) {
+//                    intake.setPower(-1);
+//                } else {
+//                    intake.setPower(0);
+//                }
+//            }
 
             telemetry.update();
         }

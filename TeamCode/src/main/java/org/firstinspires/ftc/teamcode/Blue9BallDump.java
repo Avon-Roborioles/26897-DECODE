@@ -26,15 +26,15 @@ public class Blue9BallDump extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = new Pose(0, 0, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(31, -49.5, Math.toRadians(136.5)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(25, -78.6, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1EndPose = new Pose(-7.23, -78.6, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2StartPose = new Pose(25, -52, Math.toRadians(180)); // Lowest (Third Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2EndPose = new Pose(-1, -52, Math.toRadians(180));
-    private final Pose pickup3StartPose = new Pose(8, -69, Math.toRadians(180));
-    private final Pose pickup3EndPose = new Pose(-0, -69, Math.toRadians(180));
-    private final Pose end = new Pose(33,-28,Math.toRadians(143));
+    private final Pose startPose = new Pose(-39.502575, 58.250357, Math.toRadians(90)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(-8.502575, 8.75, Math.toRadians(136.5)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(-14.502, -20.35, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1EndPose = new Pose(-46.733, -20.35, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2StartPose = new Pose(-14.502, 6.25, Math.toRadians(180)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2EndPose = new Pose(-40.503, 6.25, Math.toRadians(180));
+    private final Pose pickup3StartPose = new Pose(-31.503, -11.25, Math.toRadians(180));
+    private final Pose pickup3EndPose = new Pose(-39.503, -11.25, Math.toRadians(180));
+    private final Pose end = new Pose(-6.503,-30.25,Math.toRadians(143));
 
     private Path scorePreload;
     private PathChain grab1,grabend1,getout1,moveover,dump1,getout12,score1,grab2,grabend2,scorepre2,score2,grab3,grabend3,scorepre3,endfr;
@@ -406,7 +406,9 @@ public class Blue9BallDump extends OpMode {
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
         autonomousPathUpdate();
-        turret.updatebutauto();
+        turret.updateBlue(follower.getPose(),follower.getVelocity());
+
+        PoseStorageBlue.currentPose = follower.getPose();
 
 
         // Feedback to Driver Hub for debugging
@@ -447,5 +449,10 @@ public class Blue9BallDump extends OpMode {
         opmodeTimer.resetTimer();
         kicktimer.resetTimer();
         setPathState(0);
+    }
+
+    @Override
+    public void stop() {
+        PoseStorageBlue.currentPose = follower.getPose();
     }
 }
