@@ -103,73 +103,6 @@ public class TurretSubsystem {
         this.drivetrain=drivetrain;
     }
 
-//    public void update() {
-//        // --- TURRET TRACKING ---
-//        LLResult result = limelight.getLatestResult();
-//        if (result != null && result.isValid()) {
-//            double tx = result.getTx();
-//            double kP = 0.0137;
-//            double deadband = 0.001;
-//            double minPower = 0.0313;
-//
-//            if (Math.abs(tx) > deadband) {
-//                double motorPower = -(tx-0.8) * kP;
-//                motorPower += (motorPower > 0) ? minPower : -minPower;
-//                swivel.setPower(Range.clip(motorPower, -0.45, 0.45));
-//            } else {
-//                swivel.setPower(0);
-//            }
-//        } else {
-//            swivel.setPower(0);
-//        }
-//
-//        double currentdistance = getDistance();
-//        if (currentdistance == -1){
-//            speed = 1400;
-//        }else {
-//            speed = val * currentdistance + 962.48;
-//        }
-//        shooter1.setVelocity(-speed);
-//        shooter2.setVelocity(speed);
-//
-//        if(shooter2.getVelocity() >= speed-25) {
-//            teamlight.setPosition(0.5);
-//        } else {
-//            teamlight.setPosition(0);
-//        }
-//
-//        telemetryManager.addData("shooter1 speed",shooter1.getVelocity());
-//        telemetryManager.addData("shooter2 speed",shooter2.getVelocity());
-//        telemetryManager.update();
-//
-//
-//
-//    }
-
-    public void updatebutauto() {
-        // --- INITIALIZATION (Runs only once) ---
-        if (!autoInitialized) {
-            swivel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            swivel.setTargetPosition(0); // Lock it to the starting position
-            swivel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            autoInitialized = true;
-        }
-
-        // --- HOLD POSITION ---
-        // You MUST provide power in RUN_TO_POSITION so the motor can fight resistance to hold 0.
-        // The motor will only use as much of this power as it needs to stay at exactly 0.
-        swivel.setPower(0.45);
-
-        // --- SHOOTER ---
-        speed = 1280;
-        shooter1.setVelocity(-speed);
-        shooter2.setVelocity(speed);
-
-        if (shooter2.getVelocity() >= speed - 25) {
-            teamlight.setPosition(0.5);
-        }
-    }
-
     // Call this in TeleOp when trigger is held
     public void setShooting(boolean shooting) {
         if (shooting && !isShooting) {
@@ -238,6 +171,16 @@ public class TurretSubsystem {
 
         double currentDistance = Math.hypot(distancex, distancey);
         if(useSpeed == 1){speed = val * currentDistance + y_int;}
+
+        double currentError = Math.abs(speed - shooter2.getVelocity());
+        double activeKP = kP;
+
+        if (currentError > 50) {
+            activeKP = kP * 7.70; // 670% boost during recovery or during changes while moving
+        }
+
+        shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
+        shooter1.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
 
 
         shooter2.setVelocity(speed);
@@ -313,11 +256,11 @@ public class TurretSubsystem {
         double currentDistance = Math.hypot(distancex, distancey);
         if(useSpeed == 1){speed = val * currentDistance + y_int;}
 
-        double currentError = speed - shooter2.getVelocity();
+        double currentError = Math.abs(speed - shooter2.getVelocity());
         double activeKP = kP;
 
         if (currentError > 50) {
-            activeKP = kP * 3.5; // 350% boost during recovery or during changes while moving
+            activeKP = kP * 7.70; // 670% boost during recovery or during changes while moving
         }
 
         shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);

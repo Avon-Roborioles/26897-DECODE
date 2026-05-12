@@ -84,7 +84,7 @@ public class Red9BallDump extends OpMode {
 
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grab1 = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, pickup1Pose,pickup1EndPose))
+                .addPath(new BezierLine(scorePose, pickup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
