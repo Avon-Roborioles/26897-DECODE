@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.PedroPathing;
 
+import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
@@ -15,18 +17,19 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
+@Configurable
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(16.515)
-            .forwardZeroPowerAcceleration(-28.12035)
-            .lateralZeroPowerAcceleration(-65.88636)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.6,.0001,.055,0))
-            .headingPIDFCoefficients(new PIDFCoefficients(5,6,.2,.01))
+            .forwardZeroPowerAcceleration(-18.12035)
+            .lateralZeroPowerAcceleration(-55.88636)
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(200,15,120,1,0.9))
+            .translationalPIDFCoefficients(new PIDFCoefficients(.416,.0001,.055,0))
+            .headingPIDFCoefficients(new PIDFCoefficients(0.57,0.00001,0,0.003))
             .centripetalScaling(.0009)
             ;
 
-    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 16.7, 6.7)
+    public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1500, 500)
             ;
 
 
@@ -40,8 +43,8 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(76.52462)
-            .yVelocity(60.0192)
+            .xVelocity(96.52462)
+            .yVelocity(80.0192)
 
 
             ;

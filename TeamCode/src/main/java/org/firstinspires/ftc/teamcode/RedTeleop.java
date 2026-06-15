@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -11,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Pedro Pathing Imports
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.PedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Subsystems.MecanumDrivetrain;
@@ -92,16 +94,27 @@ public class RedTeleop extends LinearOpMode {
             }
 
             if(gamepad1.yWasPressed()) {
-                drive.robotTurn();
+                follower.setPose(new Pose(49.80,60.52,Math.toRadians(45)));
             }
 
 
             // 2. Manual Intake Control (Left Trigger)
             // We only let the manual intake run if the auto-shooter ISN'T running
-            if(gamepad1.x) {
-                intake.setPower(gamepad1.left_trigger);
+            double intakepower = gamepad1.left_trigger;
+
+            if(turret.getCurrentDistance() > 100 && gamepad1.right_trigger > 0.3) {
+                intakepower = Range.clip(intakepower,0,0.5);
+                if(gamepad1.x) {
+                    intake.setPower(intakepower);
+                } else {
+                    intake.setPower(-intakepower);
+                }
             } else {
-                intake.setPower(-gamepad1.left_trigger);
+                if (gamepad1.x) {
+                    intake.setPower(intakepower);
+                } else {
+                    intake.setPower(-intakepower);
+                }
             }
 
 

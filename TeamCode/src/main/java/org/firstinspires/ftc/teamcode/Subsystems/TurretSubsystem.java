@@ -40,10 +40,10 @@ public class TurretSubsystem {
 
     private boolean autoInitialized = false;
 
-    public static double speed = 0;
+    public static double speed = 50;
 
-    double GOAL_X = 67.67;
-    double GOAL_Y = 77.0;
+    double GOAL_X = 60;
+    double GOAL_Y = 70;
     double AIM_GOAL_Y = 70;
     double AIM_GOAL_X = 60;
     double TICKS_PER_RADIAN = 653*2/Math.PI;
@@ -55,8 +55,8 @@ public class TurretSubsystem {
 
 
     // Dip Counting Variables
-    public double RPM_DIP_THRESHOLD = 50;    // How much RPM must drop to count as a ball
-    public double RPM_RECOVERED_THRESHOLD = 25; // How close to target RPM to be "recovered"
+    public double RPM_DIP_THRESHOLD = 5;    // How much RPM must drop to count as a ball
+    public double RPM_RECOVERED_THRESHOLD = 67; // How close to target RPM to be "recovered"
 
     private int ballsFired = 0;
     private boolean rpmCurrentlyDipped = false;
@@ -69,14 +69,16 @@ public class TurretSubsystem {
 
     public double kP = 50;
     public double kD = 0;
-    public double kF = 21.3;
+    public static double kF = 21.3;
 
 
     // Blue Side Goal Variables
-    static double BLUE_GOAL_X = -67.67;
-    static double BLUE_GOAL_Y = 77.0;
-    static double BLUE_AIM_GOAL_Y = 73.2;
-    static double BLUE_AIM_GOAL_X = -70;
+    static double BLUE_GOAL_X = -60;
+    static double BLUE_GOAL_Y = 68;
+    static double BLUE_AIM_GOAL_Y = 68;
+    static double BLUE_AIM_GOAL_X = -60;
+
+    private double currentDistance = 0;
 
 
     public TurretSubsystem(HardwareMap hardwareMap) {
@@ -99,6 +101,10 @@ public class TurretSubsystem {
         limelight.start();
     }
 
+    public double getCurrentDistance() {
+        return currentDistance;
+    }
+
     public void setDrivetrain(MecanumDrivetrain drivetrain){
         this.drivetrain=drivetrain;
     }
@@ -111,14 +117,6 @@ public class TurretSubsystem {
         this.isShooting = shooting;
     }
 
-    public double getDistance() {
-        LLResult result = limelight.getLatestResult();
-        if (result == null || !result.isValid()) return -1;
-        double targetOffsetAngle_Vertical = result.getTy();
-        double angleToGoalRadians = Math.toRadians(LL_MOUNT_ANGLE + targetOffsetAngle_Vertical);
-        return (GOAL_HEIGHT - LL_LENS_HEIGHT) / Math.tan(angleToGoalRadians);
-    }
-
 
     public void updateRed(com.pedropathing.geometry.Pose robotPose, Vector robotVelocity) {
         // Initialize the tracking using run_to_position
@@ -127,6 +125,7 @@ public class TurretSubsystem {
             swivel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             trackingInitialized = true;
         }
+
 
         double virtualGoalX = AIM_GOAL_X - (robotVelocity.getXComponent() * timeOfFlight);
         double virtualGoalY = AIM_GOAL_Y - (robotVelocity.getYComponent() * timeOfFlight);
@@ -169,27 +168,27 @@ public class TurretSubsystem {
         //drivetrain.turretRequestTurn(clip*drivekP);
 
 
-        double currentDistance = Math.hypot(distancex, distancey);
-        if(useSpeed == 1){speed = val * currentDistance + y_int;}
+        currentDistance = Math.hypot(deltaX, deltaY);
+        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378*currentDistance-1567.32148;}
 
-        double currentError = Math.abs(speed - shooter2.getVelocity());
+        double currentError = Math.abs(speed - shooter1.getVelocity());
         double activeKP = kP;
 
         if (currentError > 50) {
-            activeKP = kP * 7.70; // 670% boost during recovery or during changes while moving
+            activeKP = kP * 670;
         }
 
         shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
         shooter1.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
 
 
-        shooter2.setVelocity(speed);
+        shooter2.setVelocity(-speed);
         // Shooter 2 is the master, Shooter 1 is the slave it follows all the commands via the master
-        shooter1.setVelocity(-speed);
+        shooter1.setVelocity(speed);
 
 
 
-        if (shooter2.getVelocity() >= speed - 25) {
+        if (shooter1.getVelocity() >= speed - 25) {
             teamlight.setPosition(0.5);
         } else {
             teamlight.setPosition(0);
@@ -253,27 +252,27 @@ public class TurretSubsystem {
         //drivetrain.turretRequestTurn(clip*drivekP);
 
 
-        double currentDistance = Math.hypot(distancex, distancey);
-        if(useSpeed == 1){speed = val * currentDistance + y_int;}
+        currentDistance = Math.hypot(deltaX, deltaY);
+        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378* currentDistance -1567.32148;}
 
-        double currentError = Math.abs(speed - shooter2.getVelocity());
+        double currentError = Math.abs(speed - shooter1.getVelocity());
         double activeKP = kP;
 
         if (currentError > 50) {
-            activeKP = kP * 7.70; // 670% boost during recovery or during changes while moving
+            activeKP = 670; // 670% boost during recovery or during changes while moving
         }
 
         shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
         shooter1.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
 
 
-        shooter2.setVelocity(speed);
+        shooter2.setVelocity(-speed);
         // Shooter 2 is the master, Shooter 1 is the slave it follows all the commands via the master
-        shooter1.setVelocity(-speed);
+        shooter1.setVelocity(speed);
 
 
 
-        if (shooter2.getVelocity() >= speed - 25) {
+        if (shooter1.getVelocity() >= speed - 25) {
             teamlight.setPosition(0.5);
         } else {
             teamlight.setPosition(0);
@@ -317,7 +316,7 @@ public class TurretSubsystem {
         }
 
         // 1. Calculate how far we are from our target speed
-        double rpmError = speed - shooter2.getVelocity();
+        double rpmError = speed - shooter1.getVelocity();
 
         // 2. Detect the Dip (Ball is currently passing through)
         if (rpmError > RPM_DIP_THRESHOLD) {

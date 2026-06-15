@@ -100,26 +100,29 @@ public class BlueTeleop extends LinearOpMode {
             }
 
             if(gamepad1.yWasPressed()) {
-                drive.robotTurn();
+                follower.setPose(new Pose(-51,58.58,Math.toRadians(135)));
             }
 
 
             // 2. Manual Intake Control (Left Trigger)
             // We only let the manual intake run if the auto-shooter ISN'T running
-            if(gamepad1.x) {
-                intake.setPower(gamepad1.left_trigger);
+            double intakepower = gamepad1.left_trigger;
+
+            if(turret.getCurrentDistance() > 100 && gamepad1.right_trigger > 0.3) {
+                intakepower = Range.clip(intakepower,0,0.5);
+                if(gamepad1.x) {
+                    intake.setPower(intakepower);
+                } else {
+                    intake.setPower(-intakepower);
+                }
             } else {
-                intake.setPower(-gamepad1.left_trigger);
+                if (gamepad1.x) {
+                    intake.setPower(intakepower);
+                } else {
+                    intake.setPower(-intakepower);
+                }
             }
 
-
-//            if (gamepad1.y){
-//                if (turret.isOnTarget()) {
-//                    intake.setPower(-1);
-//                } else {
-//                    intake.setPower(0);
-//                }
-//            }
             PoseStorageRed.currentPose = follower.getPose();
             telemetry.update();
         }
