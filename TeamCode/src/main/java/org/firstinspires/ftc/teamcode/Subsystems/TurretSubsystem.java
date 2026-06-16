@@ -73,10 +73,10 @@ public class TurretSubsystem {
 
 
     // Blue Side Goal Variables
-    static double BLUE_GOAL_X = -60;
-    static double BLUE_GOAL_Y = 68;
-    static double BLUE_AIM_GOAL_Y = 68;
-    static double BLUE_AIM_GOAL_X = -60;
+    static double BLUE_GOAL_X = -65;
+    static double BLUE_GOAL_Y = 60;
+    static double BLUE_AIM_GOAL_Y = 60;
+    static double BLUE_AIM_GOAL_X = -65;
 
     private double currentDistance = 0;
 
@@ -175,7 +175,7 @@ public class TurretSubsystem {
         double activeKP = kP;
 
         if (currentError > 50) {
-            activeKP = kP * 670;
+            activeKP = kP * 7.7;
         }
 
         shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
@@ -259,7 +259,7 @@ public class TurretSubsystem {
         double activeKP = kP;
 
         if (currentError > 50) {
-            activeKP = 670; // 670% boost during recovery or during changes while moving
+            activeKP = kP*7.70; // 670% boost during recovery or during changes while moving
         }
 
         shooter2.setVelocityPIDFCoefficients(activeKP, 0, kD, kF);
