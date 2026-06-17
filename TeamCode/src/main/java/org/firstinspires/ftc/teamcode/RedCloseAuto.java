@@ -34,7 +34,7 @@ import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 
 
 
-@Autonomous(name = "Hopefully Goated Red")
+@Autonomous(name = "Red Close 15")
 
 @Configurable
 

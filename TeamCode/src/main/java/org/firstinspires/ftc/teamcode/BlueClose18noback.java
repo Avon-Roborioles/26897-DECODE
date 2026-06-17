@@ -15,8 +15,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.PedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 
-@Autonomous(name = "Blue Close 15")
-public class BlueCloseAuto extends OpMode {
+@Autonomous(name = "Blue Close 18 no back spike")
+public class BlueClose18noback extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private TurretSubsystem turret;
@@ -33,36 +33,29 @@ public class BlueCloseAuto extends OpMode {
     private final Pose pickup1EndPose = new Pose(-46.733, -23.35, Math.toRadians(180));
     private final Pose pickup2StartPose = new Pose(-14.502, 1.25, Math.toRadians(180));
     private final Pose pickup2EndPose = new Pose(-40.503, 1.25, Math.toRadians(180));
-    private final Pose pickup3StartPose = new Pose(-14.502, -47.45, Math.toRadians(180));
-    private final Pose pickup3EndPose = new Pose(-46.733, -247.45, Math.toRadians(180));
     private final Pose gatePose = new Pose(-56.446, -18.866, Math.toRadians(158));
     private final Pose end = new Pose(-51.503, 0.25, Math.toRadians(143));
 
+    // Your specific hold pose for gate cycles
+    private final Pose gateHoldPose = new Pose(-56.146, -25.266, Math.toRadians(158));
+
     private Path scorePreload;
-    private PathChain grabCycle1, grabCycle2, grabCycle3_Ground, parkPath;
+    private PathChain grabCycle1, grabCycle2, parkPath;
     private PathChain grabCycle3_ToGate, grabCycle3_Return;
     private PathChain grabCycle4_ToGate, grabCycle4_Return;
-    private PathChain grabCycle5_ToGate, grabCycle5_Return;
+    private PathChain grabCycle5_ToGate, grabCycle5_Return; // Added for 3rd gate cycle
 
     Pose cycle1Control1 = new Pose(-14.5, 0.0, Math.toRadians(180));
-    // Control 2 is placed 10 inches BEFORE pickup1Pose on the exact same Y-axis (-25.35).
     Pose cycle1Control2 = new Pose(-4.5, -25.35, Math.toRadians(180));
 
     Pose cycle2Control1 = new Pose(-14.5, 25.0, Math.toRadians(180));
-    // Control 2 is placed 10 inches BEFORE pickup2StartPose on the exact same Y-axis (11.25).
     Pose cycle2Control2 = new Pose(-4.5, 11.25, Math.toRadians(180));
 
-    // Cycle 3 (Ground): Control 2 lines up perfectly on Y = -22.4 to flatten out into the intake stretch
-    Pose cycle3Control1 = new Pose(26.3, -10.0, Math.toRadians(0));
-    Pose cycle3Control2 = new Pose(16.3, -22.4, Math.toRadians(0));
-
-    // Control points to safely guide the robot out of score and around the field center
     Pose gate3ToControl1 = new Pose(-14.5, 0.0, Math.toRadians(180));
     Pose gate3ToControl2 = new Pose(-14.5, -25.35, Math.toRadians(180));
 
     Pose gate3ReturnControl1 = new Pose(-14.5, -25.35, Math.toRadians(180));
     Pose gate3ReturnControl2 = new Pose(-14.5, 0.0, Math.toRadians(180));
-
 
     public void buildPaths() {
         // Preload Path
@@ -71,67 +64,61 @@ public class BlueCloseAuto extends OpMode {
 
         // Cycle 1: Score -> Pickup 1 -> Score
         grabCycle1 = follower.pathBuilder()
-                // 1. Arc smoothly across the field and straighten out perfectly upon arrival at pickup1Pose
                 .addPath(new BezierCurve(scorePose, cycle1Control1, cycle1Control2, pickup1Pose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
-
-                // 2. The critical intake stretch! A perfectly rigid, straight line for swallowing the balls
                 .addPath(new BezierLine(pickup1Pose, pickup1EndPose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), pickup1EndPose.getHeading())
-
-                // 3. Straight shot back to score (or use another curve here if clear)
                 .addPath(new BezierCurve(pickup1EndPose, gate3ReturnControl1, gate3ReturnControl2, scorePose))
                 .setLinearHeadingInterpolation(pickup1EndPose.getHeading(), scorePose.getHeading())
                 .build();
 
         // Cycle 2: Score -> Pickup 2 -> Score
         grabCycle2 = follower.pathBuilder()
-                // 1. Arc smoothly across the field and flatten out perfectly right as you hit the start of the intake run
                 .addPath(new BezierCurve(scorePose, cycle2Control1, cycle2Control2, pickup2StartPose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2StartPose.getHeading())
-
-                // 2. The critical intake stretch! A perfectly straight line for swallowing the balls
                 .addPath(new BezierLine(pickup2StartPose, pickup2EndPose))
                 .setLinearHeadingInterpolation(pickup2StartPose.getHeading(), pickup2EndPose.getHeading())
-
-                // 3. Straight shot back to the scoring pose
                 .addPath(new BezierLine(pickup2EndPose, scorePose))
                 .setLinearHeadingInterpolation(pickup2EndPose.getHeading(), scorePose.getHeading())
                 .build();
 
-        // Cycle 3: Score -> gatePose with Hold
+        // ==========================================
+        //          GATE CYCLE 1
+        // ==========================================
         grabCycle3_ToGate = follower.pathBuilder()
-                // Arc beautifully from score, around the center, directly into the exact gate spot
                 .addPath(new BezierCurve(scorePose, gate3ToControl1, gate3ToControl2, gatePose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), gatePose.getHeading())
                 .build();
 
         grabCycle3_Return = follower.pathBuilder()
-                // Arc beautifully back from the gate directly to the score pose
                 .addPath(new BezierCurve(gatePose, gate3ReturnControl1, gate3ReturnControl2, scorePose))
                 .setLinearHeadingInterpolation(gatePose.getHeading(), scorePose.getHeading())
                 .build();
-        // Gate Cycle 2
+
+        // ==========================================
+        //          GATE CYCLE 2
+        // ==========================================
         grabCycle4_ToGate = follower.pathBuilder()
-                // Arc beautifully from score, around the center, directly into the exact gate spot
                 .addPath(new BezierCurve(scorePose, gate3ToControl1, gate3ToControl2, gatePose))
                 .setLinearHeadingInterpolation(scorePose.getHeading(), gatePose.getHeading())
                 .build();
 
         grabCycle4_Return = follower.pathBuilder()
-                // Arc beautifully back from the gate directly to the score pose
                 .addPath(new BezierCurve(gatePose, gate3ReturnControl1, gate3ReturnControl2, scorePose))
                 .setLinearHeadingInterpolation(gatePose.getHeading(), scorePose.getHeading())
                 .build();
 
+        // ==========================================
+        //          GATE CYCLE 3 (NEW)
+        // ==========================================
+        grabCycle5_ToGate = follower.pathBuilder()
+                .addPath(new BezierCurve(scorePose, gate3ToControl1, gate3ToControl2, gatePose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), gatePose.getHeading())
+                .build();
 
-        grabCycle3_Ground = follower.pathBuilder()
-                .addPath(new BezierCurve(scorePose, cycle3Control1, cycle3Control2, pickup3StartPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3StartPose.getHeading())
-                .addPath(new BezierLine(pickup3StartPose, pickup3EndPose))
-                .setLinearHeadingInterpolation(pickup3StartPose.getHeading(), pickup3EndPose.getHeading())
-                .addPath(new BezierCurve(pickup3EndPose, gate3ReturnControl1, gate3ReturnControl2, scorePose))
-                .setLinearHeadingInterpolation(pickup3EndPose.getHeading(), scorePose.getHeading())
+        grabCycle5_Return = follower.pathBuilder()
+                .addPath(new BezierCurve(gatePose, gate3ReturnControl1, gate3ReturnControl2, scorePose))
+                .setLinearHeadingInterpolation(gatePose.getHeading(), scorePose.getHeading())
                 .build();
 
         // Park Path
@@ -144,13 +131,11 @@ public class BlueCloseAuto extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0: // Move to Preload Score
-                // 1. Start the path (this happens instantly and keeps running in the background)
                 if (!follower.isBusy() && pathTimer.getElapsedTime() < 100) {
                     follower.setMaxPower(0.67);
                     follower.followPath(scorePreload);
                 }
 
-                // 2. The Synchronous Shooting Sequence (runs WHILE driving)
                 if (pathTimer.getElapsedTime() > 1200) {
                     left.setPosition(0.75);
                     right.setPosition(0.7);
@@ -166,21 +151,19 @@ public class BlueCloseAuto extends OpMode {
                     kicker.setPosition(0.015);
                 }
 
-                // 3. ONLY progress to the next state if BOTH the shooting is done AND the robot arrived
                 if (pathTimer.getElapsedTime() > 1667 && !follower.isBusy()) {
                     follower.setMaxPower(1);
                     setPathState(10);
                 }
                 break;
 
-
             // All scoring states run this shooting sequence
             case 10:
-            case 20:
+            case 20: // Scoring after grabCycle2
             case 30:
             case 34: // Scoring after Gate Cycle 1
             case 40: // Scoring after Gate Cycle 2
-            case 44: // Scoring after Gate Cycle 3
+            case 48: // Scoring after Gate Cycle 3 (NEW)
                 if (!follower.isBusy()) {
                     /* --- START OF SCORING SEQUENCE --- */
                     if (pathTimer.getElapsedTime() > 50) {
@@ -198,7 +181,7 @@ public class BlueCloseAuto extends OpMode {
                         kicker.setPosition(0.015);
                         /* --- END OF SCORING SEQUENCE --- */
 
-                        // "Exit" the scoring state and move to the next path
+                        // Routing logic based on previous completed step
                         if (pathState == 10) {
                             follower.setMaxPower(1);
                             follower.followPath(grabCycle1);
@@ -210,14 +193,15 @@ public class BlueCloseAuto extends OpMode {
                             follower.followPath(grabCycle4_ToGate);
                             setPathState(35);
                         } else if (pathState == 40) {
+                            // After Gate Cycle 2 is completed and scored, run Gate Cycle 3
                             follower.followPath(grabCycle5_ToGate);
-                            setPathState(41);
-                        } else if (pathState == 44) {
-                            // After Gate Cycle 3, run grabCycle2
+                            setPathState(45);
+                        } else if (pathState == 48) {
+                            // After Gate Cycle 3 is completed and scored, transition to grabCycle2
                             follower.followPath(grabCycle2);
                             setPathState(21);
                         } else if (pathState == 20) {
-                            // After grabCycle2 is scored, head to park
+                            // After grabCycle2 is completed and scored, Move to Park
                             follower.followPath(parkPath);
                             setPathState(50);
                         }
@@ -227,13 +211,13 @@ public class BlueCloseAuto extends OpMode {
 
             case 11: // grabCycle1 Execution
                 if (follower.getCurrentPathNumber() == 1) {
-                    intake.setPower(-1.0); // Active intaking during segment 1 (the BezierLine)
+                    intake.setPower(-1.0);
                 } else {
                     intake.setPower(0);
                 }
 
                 if (!follower.isBusy()) {
-                    setPathState(30); // Go to score and start Gate Cycles
+                    setPathState(30);
                 }
                 break;
 
@@ -244,7 +228,7 @@ public class BlueCloseAuto extends OpMode {
 
             case 32:
                 intake.setPower(-1.0);
-                follower.holdPoint(new Pose(-56.146, -25.266, Math.toRadians(158)));
+                follower.holdPoint(gateHoldPose);
                 if (pathTimer.getElapsedTime() > 1650) {
                     intake.setPower(0);
                     follower.followPath(grabCycle3_Return);
@@ -263,7 +247,7 @@ public class BlueCloseAuto extends OpMode {
 
             case 36:
                 intake.setPower(-1.0);
-                follower.holdPoint(new Pose(-56.146, -25.266, Math.toRadians(158)));
+                follower.holdPoint(gateHoldPose);
                 if (pathTimer.getElapsedTime() > 1650) {
                     intake.setPower(0);
                     follower.followPath(grabCycle4_Return);
@@ -272,43 +256,43 @@ public class BlueCloseAuto extends OpMode {
                 break;
 
             case 37:
-                if (!follower.isBusy()) setPathState(44);
+                if (!follower.isBusy()) setPathState(40);
                 break;
 
-            /* --- GATE CYCLE 3 --- */
-            case 41:
-                if (!follower.isBusy()) setPathState(42);
+            /* --- GATE CYCLE 3 (NEW) --- */
+            case 45:
+                if (!follower.isBusy()) setPathState(46);
                 break;
 
-            case 42:
+            case 46:
                 intake.setPower(-1.0);
-                follower.holdPoint(gatePose);
+                follower.holdPoint(gateHoldPose);
                 if (pathTimer.getElapsedTime() > 1650) {
                     intake.setPower(0);
                     follower.followPath(grabCycle5_Return);
-                    setPathState(43);
+                    setPathState(47);
                 }
                 break;
 
-            case 43:
-                if (!follower.isBusy()) setPathState(44);
+            case 47:
+                if (!follower.isBusy()) setPathState(48); // Move to score Gate Cycle 3
                 break;
 
-            case 21: // grabCycle2 Execution (Moved to end)
+            case 21: // grabCycle2 Execution
                 if (follower.getCurrentPathNumber() == 1) {
-                    intake.setPower(-1.0); // Active intaking during segment 1 (the BezierLine)
+                    intake.setPower(-1.0);
                 } else {
                     intake.setPower(0);
                 }
 
                 if (!follower.isBusy()) {
-                    setPathState(20); // Return to scoring for grabCycle2
+                    setPathState(20);
                 }
                 break;
 
             case 50: // Final Parking
                 if (!follower.isBusy()) {
-                    setPathState(-1); // Finished
+                    setPathState(-1);
                 }
                 break;
         }

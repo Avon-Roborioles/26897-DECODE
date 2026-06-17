@@ -109,7 +109,7 @@ public class BlueTeleop extends LinearOpMode {
             double intakepower = gamepad1.left_trigger;
 
             if(turret.getCurrentDistance() > 100 && gamepad1.right_trigger > 0.3) {
-                intakepower = Range.clip(intakepower,0,0.5);
+                intakepower = Range.clip(intakepower,0,0.67);
                 if(gamepad1.x) {
                     intake.setPower(intakepower);
                 } else {

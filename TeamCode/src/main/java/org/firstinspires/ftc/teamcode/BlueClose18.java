@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.PedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Subsystems.TurretSubsystem;
 
-@Autonomous(name = "Blue18")
+@Autonomous(name = "Blue Close 18")
 public class BlueClose18 extends OpMode {
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
