@@ -35,7 +35,7 @@ public class RedClose18noback extends OpMode {
     private static Pose pickup1EndPose = new Pose(63.307, -1.6, Math.toRadians(0));
     private static Pose pickup2StartPose = new Pose(26.3, 19.2, Math.toRadians(0));
     private static Pose pickup2EndPose = new Pose(60.307, 19.2, Math.toRadians(0));
-    private static Pose gatePose = new Pose(59.8, -3.85, Math.toRadians(22));
+    public static Pose gatePose = new Pose(58.8, -3.85, Math.toRadians(22));
     private static Pose end = new Pose(26.3, 15.2, Math.toRadians(45));
 
     // Ground Cycle 3 Poses removed per request
@@ -145,15 +145,15 @@ public class RedClose18noback extends OpMode {
 
                 // 2. The Synchronous Shooting Sequence
                 if (pathTimer.getElapsedTime() > 1200) {
-                    left.setPosition(0.75);
-                    right.setPosition(0.7);
+                    left.setPosition(0.79);
+                    right.setPosition(0.6);
                     intake.setPower(-1);
                 }
                 if (pathTimer.getElapsedTime() > 1800) {
                     kicker.setPosition(0.38);
                 }
                 if (pathTimer.getElapsedTime() > 1967) {
-                    left.setPosition(0.65);
+                    left.setPosition(0.57);
                     right.setPosition(0.8);
                     intake.setPower(0);
                     kicker.setPosition(0.015);
@@ -176,15 +176,15 @@ public class RedClose18noback extends OpMode {
                 if (!follower.isBusy()) {
                     /* --- START OF SCORING SEQUENCE --- */
                     if (pathTimer.getElapsedTime() > 50) {
-                        left.setPosition(0.75);
-                        right.setPosition(0.7);
+                        left.setPosition(0.79);
+                        right.setPosition(0.6);
                         intake.setPower(-1);
                     }
                     if (pathTimer.getElapsedTime() > 650) {
                         kicker.setPosition(0.38);
                     }
                     if (pathTimer.getElapsedTime() > 817) {
-                        left.setPosition(0.65);
+                        left.setPosition(0.57);
                         right.setPosition(0.8);
                         intake.setPower(0);
                         kicker.setPosition(0.015);
@@ -334,8 +334,8 @@ public class RedClose18noback extends OpMode {
         kicker = hardwareMap.get(Servo.class, "kicker");
         turret = new TurretSubsystem(hardwareMap);
 
-        left.setPosition(0.65);
-        right.setPosition(0.8);
+        left.setPosition(0.7);
+        right.setPosition(0.7);
         kicker.setPosition(0.015);
 
         follower = Constants.createFollower(hardwareMap);

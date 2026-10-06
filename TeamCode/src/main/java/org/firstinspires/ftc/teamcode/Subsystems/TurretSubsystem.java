@@ -42,21 +42,21 @@ public class TurretSubsystem {
 
     public static double speed = 50;
 
-    double GOAL_X = 60;
-    double GOAL_Y = 70;
-    double AIM_GOAL_Y = 70;
-    double AIM_GOAL_X = 60;
+    double GOAL_X = 65;
+    double GOAL_Y = 75;
+    double AIM_GOAL_Y = 75;
+    double AIM_GOAL_X = 65;
     double TICKS_PER_RADIAN = 653*2/Math.PI;
 
     private boolean trackingInitialized = false;
     private MecanumDrivetrain drivetrain;
 
-    public static double timeOfFlight = 0.69;
+    public static double timeOfFlight = 0.567;
 
 
     // Dip Counting Variables
-    public double RPM_DIP_THRESHOLD = 5;    // How much RPM must drop to count as a ball
-    public double RPM_RECOVERED_THRESHOLD = 67; // How close to target RPM to be "recovered"
+    public double RPM_DIP_THRESHOLD = -150;    // How much RPM must drop to count as a ball
+    public double RPM_RECOVERED_THRESHOLD = 100; // How close to target RPM to be "recovered"
 
     private int ballsFired = 0;
     private boolean rpmCurrentlyDipped = false;
@@ -74,8 +74,8 @@ public class TurretSubsystem {
 
     // Blue Side Goal Variables
     static double BLUE_GOAL_X = -65;
-    static double BLUE_GOAL_Y = 60;
-    static double BLUE_AIM_GOAL_Y = 60;
+    static double BLUE_GOAL_Y = 65;
+    static double BLUE_AIM_GOAL_Y = 65;
     static double BLUE_AIM_GOAL_X = -65;
 
     private double currentDistance = 0;
@@ -169,7 +169,7 @@ public class TurretSubsystem {
 
 
         currentDistance = Math.hypot(deltaX, deltaY);
-        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378*currentDistance-1567.32148;}
+        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378*currentDistance-1620.32148;}
 
         double currentError = Math.abs(speed - shooter1.getVelocity());
         double activeKP = kP;
@@ -253,7 +253,7 @@ public class TurretSubsystem {
 
 
         currentDistance = Math.hypot(deltaX, deltaY);
-        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378* currentDistance -1567.32148;}
+        if(useSpeed == 1){speed = -0.0000517848*Math.pow(currentDistance,4)+0.0190175*Math.pow(currentDistance,3)-2.48692*Math.pow(currentDistance,2)+141.46378* currentDistance -1620.32148;}
 
         double currentError = Math.abs(speed - shooter1.getVelocity());
         double activeKP = kP;
@@ -297,50 +297,36 @@ public class TurretSubsystem {
     }
 
     public void updateShootingSequence(boolean isTriggerHeld) {
-        // Optional: Add telemetry to FTC Dashboard to help you tune the thresholds
-        telemetryManager.addData("Balls Fired", ballsFired);
-        //telemetryManager.addData("RPM Error", rpmError);
-        // --- MANUAL OVERRIDE (e.g., for the A button) ---
+        // --- MANUAL OVERRIDE ---
         if (manualKick) {
-            kicker.setPosition(0.30);
+            kicker.setPosition(0.38);
             return;
         }
 
         // --- TRIGGER RELEASED: Reset Everything ---
         if (!isTriggerHeld) {
-            ballsFired = 0;
-            rpmCurrentlyDipped = false;
             kickerState = KickerState.WAITING;
             kicker.setPosition(0.012); // Retracted
+
+
+            kickTimer.reset();
             return;
         }
 
-        // 1. Calculate how far we are from our target speed
-        double rpmError = speed - shooter1.getVelocity();
-
-        // 2. Detect the Dip (Ball is currently passing through)
-        if (rpmError > RPM_DIP_THRESHOLD) {
-            rpmCurrentlyDipped = true;
-        }
-
-        // 3. Detect the Recovery (Ball has completely left)
-        if (rpmCurrentlyDipped && rpmError <= RPM_RECOVERED_THRESHOLD) {
-            ballsFired++;
-            rpmCurrentlyDipped = false; // Reset flag to look for the next ball
-        }
-
-        // 4. Kicker Logic: Only fire if 2 balls have left AND we are back up to speed
+        // --- TRIGGER HELD: 600ms Timer Sequence ---
         switch (kickerState) {
             case WAITING:
-                if (ballsFired >= 2 && rpmError <= RPM_RECOVERED_THRESHOLD) {
-                    kicker.setPosition(0.30); // Fire 3rd ball
+                // Wait 600ms before kicking
+                if (kickTimer.milliseconds() > 600) {
+                    kicker.setPosition(0.38); // Fire ball
                     kickTimer.reset();
                     kickerState = KickerState.EXTENDING;
                 }
                 break;
 
             case EXTENDING:
-                if (kickTimer.milliseconds() > 150) { // Wait for servo to physically push
+                // Wait 150ms for the servo to physically push the ball
+                if (kickTimer.milliseconds() > 315) {
                     kicker.setPosition(0.012); // Retract
                     kickTimer.reset();
                     kickerState = KickerState.RETRACTING;
@@ -348,13 +334,9 @@ public class TurretSubsystem {
                 break;
 
             case RETRACTING:
-                if (kickTimer.milliseconds() > 150) {
-                    // Done. Sequence stays here until trigger is released.
-                }
+                // Done. Sequence stays here until the trigger is released.
                 break;
         }
-
-
     }
 
     // Keep this so your TeleOp can still fire the kicker manually

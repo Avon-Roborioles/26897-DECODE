@@ -67,16 +67,16 @@ public class BlueTeleop extends LinearOpMode {
         follower.startTeleopDrive();
         turret.setDrivetrain(drive);
 
-        while (opModeIsActive()) {
+        while (opModeIsActive() && !isStopRequested()) {
             boolean triggerPressed = gamepad1.right_trigger > 0.8;
 
 // 1. Handle Intake/Pass Servos (Feeding Balls 1 & 2)
             if (triggerPressed) {
                 left.setPosition(0.79);
-                right.setPosition(0.7);
+                right.setPosition(0.6);
             } else {
-                left.setPosition(0.62);
-                right.setPosition(0.8);
+                left.setPosition(0.67);
+                right.setPosition(0.7);
             }
 
 

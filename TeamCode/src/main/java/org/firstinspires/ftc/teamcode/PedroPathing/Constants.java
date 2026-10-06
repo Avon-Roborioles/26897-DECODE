@@ -23,7 +23,7 @@ public class Constants {
             .mass(16.515)
             .forwardZeroPowerAcceleration(-18.12035)
             .lateralZeroPowerAcceleration(-55.88636)
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(200,15,120,1,0.9))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(180,15,120,1,0.9))
             .translationalPIDFCoefficients(new PIDFCoefficients(.416,.0001,.055,0))
             .headingPIDFCoefficients(new PIDFCoefficients(0.57,0.00001,0,0.003))
             .centripetalScaling(.0009)

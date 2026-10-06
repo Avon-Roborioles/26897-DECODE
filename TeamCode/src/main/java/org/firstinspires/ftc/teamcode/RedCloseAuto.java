@@ -72,7 +72,7 @@ public class RedCloseAuto extends OpMode {
 
     private static Pose pickup2EndPose = new Pose(60.307, 19.2, Math.toRadians(0));
 
-    private static Pose gatePose = new Pose(59.8, -3.85, Math.toRadians(22));
+    private static Pose gatePose = new Pose(59.9, -4.12, Math.toRadians(22));
 
     private static Pose pickup3StartPose = new Pose(26.3, -22.4, Math.toRadians(0));
 
@@ -312,9 +312,9 @@ public class RedCloseAuto extends OpMode {
 
                 if (pathTimer.getElapsedTime() > 1200) {
 
-                    left.setPosition(0.75);
+                    left.setPosition(0.79);
 
-                    right.setPosition(0.7);
+                    right.setPosition(0.6);
 
                     intake.setPower(-1);
 
@@ -328,7 +328,7 @@ public class RedCloseAuto extends OpMode {
 
                 if (pathTimer.getElapsedTime() > 1967) {
 
-                    left.setPosition(0.65);
+                    left.setPosition(.57);
 
                     right.setPosition(0.8);
 
@@ -374,9 +374,9 @@ public class RedCloseAuto extends OpMode {
 
                     if (pathTimer.getElapsedTime() > 50) {
 
-                        left.setPosition(0.75);
+                        left.setPosition(0.79);
 
-                        right.setPosition(0.7);
+                        right.setPosition(0.6);
 
                         intake.setPower(-1);
 
@@ -390,7 +390,7 @@ public class RedCloseAuto extends OpMode {
 
                     if (pathTimer.getElapsedTime() > 817) {
 
-                        left.setPosition(0.65);
+                        left.setPosition(0.57);
 
                         right.setPosition(0.8);
 
@@ -492,9 +492,9 @@ public class RedCloseAuto extends OpMode {
 
                 intake.setPower(-1.0);
 
-                follower.holdPoint(new Pose(59.5, -6.85, Math.toRadians(22)));
+                follower.holdPoint(gatePose);
 
-                if (pathTimer.getElapsedTime() > 1650) {
+                if (pathTimer.getElapsedTime() > 1450) {
 
                     intake.setPower(0);
 
@@ -530,9 +530,9 @@ public class RedCloseAuto extends OpMode {
 
                 intake.setPower(-1.0);
 
-                follower.holdPoint(new Pose(59.5, -6.85, Math.toRadians(22)));
+                follower.holdPoint(new Pose(60.8, -6.85, Math.toRadians(22)));
 
-                if (pathTimer.getElapsedTime() > 1650) {
+                if (pathTimer.getElapsedTime() > 1450) {
 
                     intake.setPower(0);
 
@@ -568,9 +568,9 @@ public class RedCloseAuto extends OpMode {
 
                 intake.setPower(-1.0);
 
-                follower.holdPoint(new Pose(59.5, -6.85, Math.toRadians(22)));
+                follower.holdPoint(new Pose(60.8, -6.85, Math.toRadians(22)));
 
-                if (pathTimer.getElapsedTime() > 1650) {
+                if (pathTimer.getElapsedTime() > 1450) {
 
                     intake.setPower(0);
 
